@@ -226,6 +226,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	ID3DBlob* signatureBlob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
+	
+	hr = D3D12SerializeRootSignature(&descriptionRootSignature,
+		D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
+
+
 	if (FAILED(hr)) {
 		Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
