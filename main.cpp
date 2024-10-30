@@ -30,7 +30,7 @@ IDxcBlob* CompileShader(
 	IDxcCompiler3* dxcCompiler,
 	IDxcIncludeHandler* includeHandler
 );
-
+ID3D12Resource* CreateBufferResource(ID3D12Device* device,size_t sizeInBytes);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 struct Vector4 {
@@ -235,6 +235,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	
+	D3D12_ROOT_PARAMETER rootParameters[1] = {};
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[0].Descriptor.ShaderRegister = 0;
+	descriptionRootSignature.pParameters = rootParameters;
+	descriptionRootSignature.NumParameters = _countof(rootParameters);
+	
+	
+	
 	ID3DBlob* signatureBlob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
 	
@@ -273,7 +283,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		L"vs_6_0", dxcUtils, dxcCompiler ,includeHandler);
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Shader/Object3d.PS.hlsl",
+	IDxcBlob* pixelShaderBlob = CompileShader(L"Shader/Object3D.PS.hlsl",
 		L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(pixelShaderBlob != nullptr);
 
@@ -303,10 +313,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	assert(SUCCEEDED(hr));
 
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
+	////D3D12_HEAP_PROPERTIES uploadHeapProperties{};
+	//uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
 
-	D3D12_RESOURCE_DESC vertexResourceDesc{};
+	/*D3D12_RESOURCE_DESC vertexResourceDesc{};
 	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	vertexResourceDesc.Width = sizeof(Vector4) * 3;
 
@@ -315,17 +325,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexResourceDesc.MipLevels = 1;
 	vertexResourceDesc.SampleDesc.Count = 1;
 
-	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;*/
 
-	ID3D12Resource* vertexResource = nullptr;
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	ID3D12Resource* vertexResource = CreateBufferResource(device,sizeof(Vector4)*3);
+	/*hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
-	assert(SUCCEEDED(hr));
+	assert(SUCCEEDED(hr));*/
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
 	vertexBufferView.SizeInBytes = sizeof(Vector4) * 3;
 	vertexBufferView.StrideInBytes = sizeof(Vector4);
+
+	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Vector4) * 3);
+
+	Vector4* materialData = nullptr;
+
+	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+	*materialData = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 
 	Vector4* vertexData = nullptr;
 
@@ -383,7 +400,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 			commandList->DrawInstanced(3, 1, 0, 0);
+
+			
+
 
 			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -432,6 +453,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rootSignature->Release();
 	pixelShaderBlob->Release();
 	vertexShaderBlob->Release();
+	materialResource->Release();
 
 #ifdef _DEBUG
 	debufController->Release();
@@ -550,4 +572,27 @@ IDxcBlob* CompileShader(
 	shaderResult->Release();
 
 	return shaderBlob;
+}
+
+ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes)
+{
+	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
+	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+	D3D12_RESOURCE_DESC vertexResourceDesc{};
+	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	vertexResourceDesc.Width = sizeInBytes;
+
+	vertexResourceDesc.Height = 1;
+	vertexResourceDesc.DepthOrArraySize = 1;
+	vertexResourceDesc.MipLevels = 1;
+	vertexResourceDesc.SampleDesc.Count = 1;
+
+	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+	ID3D12Resource* vertexResource;
+	device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
+
+	return vertexResource;
 }
