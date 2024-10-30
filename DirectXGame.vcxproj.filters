@@ -28,7 +28,7 @@
     <None Include=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="VertexShader.hlsl" />
-    <FxCompile Include="Object3d.PS.hlsl" />
+    <FxCompile Include="Object3d.VS.hlsl" />
+    <FxCompile Include="Object3D.PS.hlsl" />
   </ItemGroup>
 </Project>
