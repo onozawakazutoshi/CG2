@@ -571,59 +571,59 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			u = float(lonIndex) / float(kSubdivision);
 			v = 1.0f - float(latIndex) / float(kSubdivision);
 			//b
-			vertexData[start].position.x = cosf(lat + kLatEvery) * cosf(lon);
-			vertexData[start].position.y = sinf(lat + kLatEvery);
-			vertexData[start].position.z = cosf(lat + kLatEvery) * sinf(lon);
-			vertexData[start].position.w = 1;
-			vertexData[start].texcoord = { u,v };
+			vertexData[start+5].position.x = cosf(lat + kLatEvery) * cosf(lon);
+			vertexData[start+5].position.y = sinf(lat + kLatEvery);
+			vertexData[start+5].position.z = cosf(lat + kLatEvery) * sinf(lon);
+			vertexData[start+5].position.w = 1;
+			vertexData[start+5].texcoord = { u,v };
 
 
 			u = float(lonIndex+1) / float(kSubdivision);
 			v = 1.0f - float(latIndex) / float(kSubdivision);
 			//d
-			vertexData[start + 1].position.x = cosf(lat + kLatEvery) * cosf(lon + kLonEvery);
-			vertexData[start + 1].position.y = sinf(lat + kLatEvery);
-			vertexData[start + 1].position.z = cosf(lat + kLatEvery) * sinf(lon + kLonEvery);
-			vertexData[start + 1].position.w = 1;
-			vertexData[start + 1].texcoord = { u,v };
-
-			u = float(lonIndex+1) / float(kSubdivision);
-			v = 1.0f - float(latIndex+1) / float(kSubdivision);
-			//c
-			vertexData[start + 2].position.x = cosf(lat) * cosf(lon + kLonEvery);
-			vertexData[start + 2].position.y = sinf(lat);
-			vertexData[start + 2].position.z = cosf(lat) * sinf(lon + kLonEvery);
-			vertexData[start + 2].position.w = 1;
-			vertexData[start + 2].texcoord = { u,v };
-
-
-			u = float(lonIndex) / float(kSubdivision);
-			v = 1.0f - float(latIndex) / float(kSubdivision);
-			//b
-			vertexData[start + 3].position.x = cosf(lat + kLatEvery) * cosf(lon);
+			vertexData[start + 3].position.x = cosf(lat + kLatEvery) * cosf(lon + kLonEvery);
 			vertexData[start + 3].position.y = sinf(lat + kLatEvery);
-			vertexData[start + 3].position.z = cosf(lat + kLatEvery) * sinf(lon);
+			vertexData[start + 3].position.z = cosf(lat + kLatEvery) * sinf(lon + kLonEvery);
 			vertexData[start + 3].position.w = 1;
 			vertexData[start + 3].texcoord = { u,v };
 
 			u = float(lonIndex+1) / float(kSubdivision);
-			v = 1.0f - float(latIndex+1) / float(kSubdivision);
+			v = 1.0f - float(latIndex-1) / float(kSubdivision);
 			//c
 			vertexData[start + 4].position.x = cosf(lat) * cosf(lon + kLonEvery);
 			vertexData[start + 4].position.y = sinf(lat);
 			vertexData[start + 4].position.z = cosf(lat) * sinf(lon + kLonEvery);
 			vertexData[start + 4].position.w = 1;
 			vertexData[start + 4].texcoord = { u,v };
+
+
+			u = float(lonIndex) / float(kSubdivision);
+			v = 1.0f - float(latIndex) / float(kSubdivision);
+			//b
+			vertexData[start + 1].position.x = cosf(lat + kLatEvery) * cosf(lon);
+			vertexData[start + 1].position.y = sinf(lat + kLatEvery);
+			vertexData[start + 1].position.z = cosf(lat + kLatEvery) * sinf(lon);
+			vertexData[start + 1].position.w = 1;
+			vertexData[start + 1].texcoord = { u,v };
+
+			u = float(lonIndex+1) / float(kSubdivision);
+			v = 1.0f - float(latIndex-1) / float(kSubdivision);
+			//c
+			vertexData[start + 2].position.x = cosf(lat) * cosf(lon + kLonEvery);
+			vertexData[start + 2].position.y = sinf(lat);
+			vertexData[start + 2].position.z = cosf(lat) * sinf(lon + kLonEvery);
+			vertexData[start + 2].position.w = 1;
+			vertexData[start + 2].texcoord = { u,v };
 			//commandList.DrawInstanced(6, 1, 0, 0);
 			
 			u = float(lonIndex) / float(kSubdivision);
-			v = 1.0f - float(latIndex+1) / float(kSubdivision);
+			v = 1.0f - float(latIndex-1) / float(kSubdivision);
 			// //a
-			vertexData[start + 5].position.x = cosf(lat) * cosf(lon);
-			vertexData[start + 5].position.y = sinf(lat);
-			vertexData[start + 5].position.z = cosf(lat) * sinf(lon);
-			vertexData[start + 5].position.w = 1;
-			vertexData[start + 5].texcoord = { u,v };
+			vertexData[start].position.x = cosf(lat) * cosf(lon);
+			vertexData[start ].position.y = sinf(lat);
+			vertexData[start].position.z = cosf(lat) * sinf(lon);
+			vertexData[start].position.w = 1;
+			vertexData[start].texcoord = { u,v };
 		}
 
 
