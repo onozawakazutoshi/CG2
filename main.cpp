@@ -334,7 +334,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	TransformationMatrix* transformationMatrixDataSprite = nullptr;
 	transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
 	transformationMatrixDataSprite->World = MakeIdenty4x4();
-	transformationMatrixDataSprite->WVP = MakeIdenty4x4();
+	
 
 	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
@@ -746,14 +746,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Matrix4x4 transformationMatrixDate = worldViewProjectionMatrix;
 			//Matrix4x4 worldMatrix = MakeAffinMatrix(transform.scale, transform.rotate, transform.translate);
 			wvpData->World = worldMatrix;
-			//wvpResource = wvpData
+			wvpData->WVP = worldViewProjectionMatrix;
 
 			Matrix4x4 worldMatrixSprite = MakeAffinMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
 			Matrix4x4 viewMatrixSprite = MakeIdenty4x4();
 			Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(0.0f, 0.0f, float(kClientWidth), float(kClientHeight), 0.0f, 100.0f);
 			Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));
 			transformationMatrixDataSprite->World = worldViewProjectionMatrixSprite;
-
+			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
 
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
@@ -790,7 +790,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetPipelineState(graphicsPipelineState);
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 			
-			commandList->SetGraphicsRootConstantBufferView(0, directionalLightDataResource->GetGPUVirtualAddress());
+			commandList->SetGraphicsRootConstantBufferView(3,directionalLightDataResource->GetGPUVirtualAddress());
 
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -862,7 +862,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	graphicsPipelineState->Release();
 	infoQueue->Release();
 
-
+	useAdapter->Release();
+	dxgiFactory->Release();
+	debufController->Release();
 
 	signatureBlob->Release();
 	includeHandler->Release();
@@ -887,9 +889,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
-	useAdapter->Release();
-	dxgiFactory->Release();
-	debufController->Release();
+	
 
 
 
