@@ -520,7 +520,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	materialData->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	materialData->enablleLighting = false;
+	materialData->enablleLighting = true;
 
 	VertexData* vertexData = nullptr;
 
