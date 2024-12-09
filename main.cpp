@@ -11,6 +11,9 @@
 #include <dxgi1_6.h>
 #include <cassert>
 #include <cmath>
+
+#include <fstream>
+#include <sstream>
 #pragma warning(pop)
 
 #pragma comment(lib,"d3d12.lib")
@@ -89,6 +92,15 @@ struct DirectionalLight {
 	float intensity;
 };
 
+struct MaterialData {
+	std::string textureFilePath;
+	
+};
+struct ModelData {
+	std::vector<VertexData> vertices;
+	MaterialData material;
+};
+
 Matrix4x4 MakeIdenty4x4();
 Matrix4x4 MakeAffinMatrix(const Vector3& S, const Vector3& R, const Vector3& T);
 Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2);
@@ -116,6 +128,9 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
 D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
 
+ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+
+MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 // windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	CoInitializeEx(0, COINIT_MULTITHREADED);
@@ -572,6 +587,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{0.0f,0.0f,0.0f}
 	};
 
+	ModelData modelData = LoadObjFile("resources", "axis.obj");
+
+	ID3D12Resource* vertexResource2 = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
+
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView2{};
+	vertexBufferView2.BufferLocation = vertexResource2->GetGPUVirtualAddress();
+	vertexBufferView2.SizeInBytes = UINT(sizeof(VertexData) * modelData.vertices.size());
+	vertexBufferView2.StrideInBytes = sizeof(VertexData);
+
+	VertexData* vertexData2 = nullptr;
+	vertexResource2->Map(0, nullptr, reinterpret_cast<void**>(&vertexData2));
+	std::memcpy(vertexData2, modelData.vertices.data(), sizeof(VertexData)* modelData.vertices.size());
+
 	const float kLonEvery = (float)M_PI * 2.0f / float(kSubdivision);
 
 	const float kLatEvery = (float)M_PI / float(kSubdivision);
@@ -755,7 +783,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	device->CreateShaderResourceView(textureResource, &srvDesc, textureSrvHandleCPU);
 
-	bool useMonsterBall = true;
+	bool useMonsterBall = false;
+
+	if (modelData.material.textureFilePath != "") {
+		DirectX::ScratchImage mipImages2 = LoadTexture(modelData.material.textureFilePath);
+	}
 
 	MSG msg{};
 	while (msg.message != WM_QUIT) {
@@ -765,7 +797,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 		else {
 
-			transform.rotate.y += 0.03f;
+			//transform.rotate.y += 0.03f;
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
@@ -782,6 +814,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
 			ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
 			ImGui::SliderAngle("UVROtate", &uvTransformSprite.rotate.z);
+
+
+			ImGui::DragFloat2("rotate", &transform.rotate.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat2("scale", &transform.scale.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat3("translate", &transform.translate.x, 0.01f, -10.0f, 10.0f);
 
 			ImGui::End();
 
@@ -842,7 +879,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			commandList->SetGraphicsRootSignature(rootSignature);
 			commandList->SetPipelineState(graphicsPipelineState);
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferView2);
 			
 			
 
@@ -856,7 +893,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
-			commandList->DrawInstanced(latIndex * lonIndex * 6, 1, 0, 0);
+			//commandList->DrawInstanced(latIndex * lonIndex * 6, 1, 0, 0);
+			commandList->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 			
             commandList->IASetIndexBuffer(&indexBufferViewSprite);
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
@@ -1594,4 +1632,103 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descrip
 	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
 	handleGPU.ptr += (descriptorSize * index);
 	return handleGPU;
+}
+
+ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename)
+{
+	ModelData modelData;
+	std::vector<Vector4> positions;
+	std::vector<Vector3> normals;
+	std::vector<Vector2> texcoords;
+	std::string line;
+
+	std::ifstream file(directoryPath + "/" + filename);
+	assert(file.is_open());
+
+	while (std::getline(file, line)) {
+		std::string identifier;
+		std::istringstream s(line);
+		s >> identifier;
+
+		if (identifier == "v") {
+			Vector4 position;
+			s >> position.x >> position.y >> position.z;
+			position.w = 1.0f;
+			positions.push_back(position);
+		}
+		else if (identifier == "vt") {
+			Vector2 texcoord;
+			s >> texcoord.x >> texcoord.y;
+			texcoords.push_back(texcoord);
+		}
+		else if (identifier == "vn") {
+			Vector3 normal;
+			s >> normal.x >> normal.y >> normal.z;
+			//normal.x *= -1;
+			normals.push_back(normal);
+		}
+		else if (identifier == "f") {
+			VertexData triangle[3];
+
+			for (int32_t faceVertex = 0;faceVertex < 3;++faceVertex) {
+				std::string vertexDefinition;
+				s >> vertexDefinition;
+
+				std::istringstream v(vertexDefinition);
+				uint32_t elementIndices[3];
+				for (int32_t element = 0;element < 3;++element) {
+					std::string index;
+					std::getline(v, index, '/');
+					elementIndices[element] = std::stoi(index);
+				}
+
+				Vector4 posision = positions[elementIndices[0] - 1];
+				Vector2 texcoord = texcoords[elementIndices[1] - 1];
+				Vector3 normal = normals[elementIndices[2] - 1];
+
+				texcoord.y = 1.0f - texcoord.y;
+				posision.x *= -1;
+				normal.x *= -1;
+				//VertexData vertex = { posision,texcoord,normal };
+				//modelData.vertices.push_back(vertex);
+				
+
+				triangle[faceVertex] = { posision,texcoord,normal };
+			}
+			modelData.vertices.push_back(triangle[2]);
+			modelData.vertices.push_back(triangle[1]);
+			modelData.vertices.push_back(triangle[0]);
+		}
+		else if (identifier == "mtllib") {
+			std::string materialFilename;
+			s >> materialFilename;
+
+			modelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
+		}
+	}
+	return modelData;
+}
+
+MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename)
+{
+	MaterialData materialData;
+	std::string line;
+	std::ifstream file(directoryPath + "/" + filename);
+	assert(file.is_open());
+
+	while (std::getline(file, line)) {
+		std::string identifier;
+		std::istringstream s(line);
+
+		s >> identifier;
+
+		if (identifier == "map_kd") {
+			std::string textureFilename;
+			s >> textureFilename;
+
+			materialData.textureFilePath = directoryPath + "/" + textureFilename;
+		}
+		
+	}
+	return materialData;
 }
