@@ -54,6 +54,10 @@ struct Vector3 {
 struct Vector2 {
 	float x, y;
 };
+struct Matrix3x3
+{
+	float m[3][3];
+};
 struct Matrix4x4
 {
 	float m[4][4];
@@ -71,6 +75,8 @@ struct VertexData {
 struct Material {
 	Vector4 color;
 	int32_t enablleLighting;
+	float padding[3];
+	Matrix4x4 uvTransform;
 };
 struct TransformationMatrix {
 	Matrix4x4 WVP;
@@ -541,10 +547,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	materialData->enablleLighting = true;
 
+	materialData->uvTransform = MakeIdenty4x4();
+
+
+	ID3D12Resource* materialSpriteResourceSprite = CreateBufferResource(device, sizeof(Material));
+
+	Material* materialDataSprite = nullptr;
+
+	materialSpriteResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite));
+
+	materialDataSprite->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	materialDataSprite->enablleLighting = true;
+
+	materialDataSprite->uvTransform = MakeIdenty4x4();
+
 	VertexData* vertexData = nullptr;
 
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
 
+	Transform uvTransformSprite{
+		{1.0f,1.0f,1.0f},
+		{0.0f,0.0f,0.0f},
+		{0.0f,0.0f,0.0f}
+	};
 
 	const float kLonEvery = (float)M_PI * 2.0f / float(kSubdivision);
 
@@ -753,6 +779,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			
 			ImGui::Checkbox("useMonsterBall", &useMonsterBall);
 
+			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+			ImGui::SliderAngle("UVROtate", &uvTransformSprite.rotate.z);
+
 			ImGui::End();
 
 			ImGui::Render();
@@ -773,6 +803,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));
 			transformationMatrixDataSprite->World = worldViewProjectionMatrixSprite;
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
+
+			Matrix4x4 uvTransformMatrix = MAkeScaleMatrix(uvTransformSprite.scale);
+			uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate));
+			uvTransformMatrix = Multiply(uvTransformMatrix, MAkeTranslateMatrix(uvTransformSprite.translate));
+			materialDataSprite->uvTransform = uvTransformMatrix;
 
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
@@ -826,6 +861,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             commandList->IASetIndexBuffer(&indexBufferViewSprite);
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 			
+			commandList->SetGraphicsRootConstantBufferView(0, materialSpriteResourceSprite->GetGPUVirtualAddress());
+			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 			//commandList->DrawInstanced(6, 1, 0, 0);
 			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
