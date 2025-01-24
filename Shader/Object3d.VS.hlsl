@@ -13,12 +13,14 @@ struct VertexShaderInput
     float32_t3 normal : NORMAL0;
 };
 
+
 VertexShaderOutput main(VertexShaderInput input)
 {
     VertexShaderOutput output;
     output.posision = mul(input.posision, gTransformationMatrix.WVP);
     output.texcoord = input.texcoord;
     output.normal = normalize(mul(input.normal, (float32_t3x3) gTransformationMatrix.World));
-    
+    output.worldPosition = mul(input.posision, gTransformationMatrix.World).xyz;
+   
     return output;
 }
