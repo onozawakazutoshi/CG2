@@ -576,7 +576,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	materialData->uvTransform = MakeIdenty4x4();
 
-	materialData->shininess = 1.0f;
+	materialData->shininess = 8.0f;
 
 
 	ID3D12Resource* materialSpriteResourceSprite = CreateBufferResource(device, sizeof(Material));
@@ -834,7 +834,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::DragFloat2("scale", &transform.scale.x, 0.01f, -10.0f, 10.0f);
 			ImGui::DragFloat3("translate", &transform.translate.x, 0.01f, -10.0f, 10.0f);
 
-			ImGui::SliderFloat("Color", &materialData->shininess, 0.0f, 5.0f);
+			ImGui::SliderFloat("Color", &materialData->shininess, 0.0f, 10.0f);
 			ImGui::End();
 
 			ImGui::Render();
