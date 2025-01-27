@@ -3,10 +3,11 @@
 
 using namespace Microsoft::WRL;
 
-void Input::Initialize(HINSTANCE hinstance_, HWND hwnd_)
+void Input::Initialize(WinApp* winApp)
 {
-	hinstance = hinstance_;
-	hwnd = hwnd_;
+	this->winApp = winApp;
+	hinstance = winApp->wc.hInstance;
+	hwnd = winApp->hwnd_;
 
 	result = DirectInput8Create(hinstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput, nullptr);
 	assert(SUCCEEDED(result));

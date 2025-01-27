@@ -778,7 +778,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Input* input = nullptr;
 	input = new Input();
-	input->Initialize(winapp->wc.hInstance, winapp->hwnd_);
+	input->Initialize(winapp);
 
 	//modelData.vertices.push_back(VertexData{ {1.0f,1.0f,0.0f,1.0f},{0.0f,0.0f}, {0.0f,0.0f,1.0f}});
 
@@ -976,7 +976,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//commandList->Release();
 	//commandAllocator->Release();
 	CloseHandle(fenceEvent);
-
+	winapp->Finalize();
 	delete input;
 
 

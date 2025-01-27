@@ -33,6 +33,7 @@ public:
 	const int32_t kClientHeight = 720;
 	HWND hwnd_;
 	WNDCLASS wc{};
+	void Finalize();
 
 private:
 	

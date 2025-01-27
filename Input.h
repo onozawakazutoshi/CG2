@@ -9,11 +9,13 @@
 #pragma  comment(lib,"dinput8.lib")
 #pragma  comment(lib,"dxguid.lib")
 
+#include "WinApp.h"
+
 
 class Input
 {
 public:
-	void Initialize(HINSTANCE hinstance_,HWND hwnd_);
+	void Initialize(WinApp* winApp);
 	void Updat();
 
 	template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -27,7 +29,7 @@ private:
 	BYTE key[256] = {};
 	ComPtr<IDirectInputDevice8> keyboard;
 	ComPtr<IDirectInput8> directInput = nullptr;
-
+	WinApp* winApp = nullptr;
 
 };
 
