@@ -20,11 +20,14 @@ public:
 
 	bool PushKey(BYTE keyNumber);
 
+	bool TriggerKey(BYTE keyNumber);
+
 private:
 	HRESULT result;
 	HINSTANCE hinstance;
 	HWND hwnd;
 	BYTE key[256] = {};
+	BYTE keyPre[256] = {};
 	ComPtr<IDirectInputDevice8> keyboard;
 	ComPtr<IDirectInput8> directInput = nullptr;
 

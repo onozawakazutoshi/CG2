@@ -880,6 +880,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
 
 			input->Updat();
+			if (input->TriggerKey(DIK_0)) {
+				OutputDebugStringA("Hit0\n");
+			}
 
 
 			D3D12_RESOURCE_BARRIER barrier{};
