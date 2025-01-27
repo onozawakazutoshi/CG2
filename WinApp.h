@@ -35,6 +35,8 @@ public:
 	WNDCLASS wc{};
 	void Finalize();
 
+	bool ProcessMessage();
+
 private:
 	
 	RECT wrc;

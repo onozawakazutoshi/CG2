@@ -48,6 +48,21 @@ void WinApp::Finalize()
 	CoUninitialize();
 }
 
+bool WinApp::ProcessMessage()
+{
+	MSG msg{};
+
+	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	if (msg.message == WM_QUIT) {
+		return true;
+	}
+	return false;
+}
+
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
