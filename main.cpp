@@ -812,7 +812,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Input* input = nullptr;
 	input = new Input();
-	input->Initialize();
+	input->Initialize(wc.hInstance,hwnd_);
 
 	//modelData.vertices.push_back(VertexData{ {1.0f,1.0f,0.0f,1.0f},{0.0f,0.0f}, {0.0f,0.0f,1.0f}});
 
@@ -879,6 +879,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
 
+			input->Updat();
 
 
 			D3D12_RESOURCE_BARRIER barrier{};

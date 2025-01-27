@@ -3,13 +3,15 @@
 
 using namespace Microsoft::WRL;
 
-void Input::Initialize()
+void Input::Initialize(HINSTANCE hinstance_, HWND hwnd_)
 {
-	ComPtr<IDirectInput8> directInput = nullptr;
+	hinstance = hinstance_;
+	hwnd = hwnd_;
+
 	result = DirectInput8Create(hinstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput, nullptr);
 	assert(SUCCEEDED(result));
 
-	ComPtr<IDirectInputDevice8> keyboard;
+	
 	result = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
 	assert(SUCCEEDED(result));
 
@@ -22,5 +24,15 @@ void Input::Initialize()
 
 void Input::Updat()
 {
+	keyboard->Acquire();
+	
+	keyboard->GetDeviceState(sizeof(key), key);
+}
 
+bool Input::PushKey(BYTE keyNumber)
+{
+	if (key[keyNumber]) {
+		return true;
+	}
+	return false;
 }
