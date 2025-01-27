@@ -29,7 +29,15 @@ public:
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 	void Initialize();
 	void Update();
+	const int32_t kClientWidth = 1280;
+	const int32_t kClientHeight = 720;
+	HWND hwnd_;
+	WNDCLASS wc{};
 
+private:
+	
+	RECT wrc;
+	
 	
 };
 

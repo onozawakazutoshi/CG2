@@ -1,15 +1,10 @@
 #include "WinApp.h"
-#include "externals/imgui/imgui_impl_win32.cpp"
+#include "externals/imgui/imgui_impl_win32.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void WinApp::Initialize()
 {
-	const int32_t kClientWidth = 1280;
-	const int32_t kClientHeight = 720;
-	RECT wrc;
-	WNDCLASS wc{};
-	HWND hwnd_;
-
-	
 
 	wc.lpfnWndProc = WindowProc;
 	//ウィンドウクラス名（何でもよい）
@@ -39,6 +34,8 @@ void WinApp::Initialize()
 		wc.hInstance,
 		nullptr
 	);
+	ShowWindow(hwnd_, SW_SHOW);
+
 }
 
 void WinApp::Update()
