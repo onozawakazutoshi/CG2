@@ -11,6 +11,7 @@
 #include <dxgi1_6.h>
 #include <cassert>
 #include <cmath>
+#include<wrl.h>
 
 #include <fstream>
 #include <sstream>
@@ -72,7 +73,7 @@ struct Transform {
 };
 struct VertexData {
 	Vector4 position;
-	Vector2 texcoord;
+	Vector2 texcord;
 	Vector3 normal;
 };
 struct Material {
@@ -332,17 +333,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	VertexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
 
 	vertexDataSprite[0].position = { 0.0f,360.0f,0.0f,1.0f };
-	vertexDataSprite[0].texcoord = { 0.0f,1.0f };
+	vertexDataSprite[0].texcord = { 0.0f,1.0f };
 	vertexDataSprite[0].normal = { 0.0f,0.0f,-1.0f };
 	vertexDataSprite[1].position = { 0.0f,0.0f,0.0f,1.0f };
-	vertexDataSprite[1].texcoord = { 0.0f,0.0f };
+	vertexDataSprite[1].texcord = { 0.0f,0.0f };
 	vertexDataSprite[1].normal = { 0.0f,0.0f,-1.0f };
 	vertexDataSprite[2].position = { 640.0f,360.0f,0.0f,1.0f };
-	vertexDataSprite[2].texcoord = { 1.0f,1.0f };
+	vertexDataSprite[2].texcord = { 1.0f,1.0f };
 	vertexDataSprite[2].normal = { 0.0f,0.0f,-1.0f };
 
 	vertexDataSprite[3].position = { 640.0f,0.0f,0.0f,1.0f };
-	vertexDataSprite[3].texcoord = { 1.0f,0.0f };
+	vertexDataSprite[3].texcord = { 1.0f,0.0f };
 	vertexDataSprite[3].normal = { 0.0f,0.0f,-1.0f };
 	//vertexDataSprite[4].position = { 640.0f,0.0f,0.0f,1.0f };
 	//vertexDataSprite[4].texcoord = { 1.0f,0.0f };
@@ -493,11 +494,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Shader/Object3D.VS.hlsl",
+	IDxcBlob* vertexShaderBlob = CompileShader(L"Shader/Particle.VS.hlsl",
 		L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(vertexShaderBlob != nullptr);
 
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Shader/Object3D.PS.hlsl",
+	IDxcBlob* pixelShaderBlob = CompileShader(L"Shader/Particle.PS.hlsl",
 		L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(pixelShaderBlob != nullptr);
 
@@ -622,7 +623,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start + 5].position.y = sinf(lat + kLatEvery);
 			vertexData[start + 5].position.z = cosf(lat + kLatEvery) * sinf(lon);
 			vertexData[start + 5].position.w = 1;
-			vertexData[start + 5].texcoord = { u,v };
+			vertexData[start + 5].texcord = { u,v };
 
 			vertexData[start + 5].normal.x = vertexData[start + 5].position.x;
 			vertexData[start + 5].normal.y = vertexData[start + 5].position.y;
@@ -636,7 +637,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start + 3].position.y = sinf(lat + kLatEvery);
 			vertexData[start + 3].position.z = cosf(lat + kLatEvery) * sinf(lon + kLonEvery);
 			vertexData[start + 3].position.w = 1;
-			vertexData[start + 3].texcoord = { u,v };
+			vertexData[start + 3].texcord = { u,v };
 
 			vertexData[start + 3].normal.x = vertexData[start + 3].position.x;
 			vertexData[start + 3].normal.y = vertexData[start + 3].position.y;
@@ -649,7 +650,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start + 4].position.y = sinf(lat);
 			vertexData[start + 4].position.z = cosf(lat) * sinf(lon + kLonEvery);
 			vertexData[start + 4].position.w = 1;
-			vertexData[start + 4].texcoord = { u,v };
+			vertexData[start + 4].texcord = { u,v };
 
 			vertexData[start + 4].normal.x = vertexData[start + 4].position.x;
 			vertexData[start + 4].normal.y = vertexData[start + 4].position.y;
@@ -663,7 +664,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start].position.y = sinf(lat);
 			vertexData[start].position.z = cosf(lat) * sinf(lon);
 			vertexData[start].position.w = 1;
-			vertexData[start].texcoord = { u,v };
+			vertexData[start].texcord = { u,v };
 
 			vertexData[start].normal.x = vertexData[start].position.x;
 			vertexData[start].normal.y = vertexData[start].position.y;
@@ -676,7 +677,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start + 1].position.y = sinf(lat + kLatEvery);
 			vertexData[start + 1].position.z = cosf(lat + kLatEvery) * sinf(lon);
 			vertexData[start + 1].position.w = 1;
-			vertexData[start + 1].texcoord = { u,v };
+			vertexData[start + 1].texcord = { u,v };
 
 			vertexData[start + 1].normal.x = vertexData[start + 1].position.x;
 			vertexData[start + 1].normal.y = vertexData[start + 1].position.y;
@@ -689,7 +690,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start + 2].position.y = sinf(lat);
 			vertexData[start + 2].position.z = cosf(lat) * sinf(lon + kLonEvery);
 			vertexData[start + 2].position.w = 1;
-			vertexData[start + 2].texcoord = { u,v };
+			vertexData[start + 2].texcord = { u,v };
 
 			vertexData[start + 2].normal.x = vertexData[start + 2].position.x;
 			vertexData[start + 2].normal.y = vertexData[start + 2].position.y;
@@ -789,6 +790,58 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DirectX::ScratchImage mipImages2 = LoadTexture(modelData.material.textureFilePath);
 	}
 
+	/*ModelData modelData2;
+	modelData2.vertices.push_back({ .position = {1.0f,1.0f,0.0f,1.0f},.texcord = {0.0f,0.0f},.normal = {0.0f,0.0f,1.0f} });
+	modelData2.vertices.push_back({ .position = {-1.0f,1.0f,0.0f,1.0f},.texcord = {0.0f,0.0f},.normal = {0.0f,0.0f,1.0f} });
+	modelData2.vertices.push_back({ .position = {1.0f,-1.0f,0.0f,1.0f},.texcord = {0.0f,0.0f},.normal = {0.0f,0.0f,1.0f} });
+	modelData2.vertices.push_back({ .position = {1.0f,-1.0f,0.0f,1.0f},.texcord = {0.0f,0.0f},.normal = {0.0f,0.0f,1.0f} });
+	modelData2.vertices.push_back({ .position = {-1.0f,1.0f,0.0f,1.0f},.texcord = {0.0f,0.0f},.normal = {0.0f,0.0f,1.0f} });
+	modelData2.vertices.push_back({ .position = {-1.0f,-1.0f,0.0f,1.0f},.texcord = {0.0f,0.0f},.normal = {0.0f,0.0f,1.0f} });*/
+
+	D3D12_DESCRIPTOR_RANGE descriptorRangeForInstancing[1] = {};
+	descriptorRangeForInstancing[0].BaseShaderRegister = 0;
+	descriptorRangeForInstancing[0].NumDescriptors = 1;
+	descriptorRangeForInstancing[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeForInstancing[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	rootParameters[1].DescriptorTable.pDescriptorRanges = descriptorRangeForInstancing;
+	rootParameters[1].DescriptorTable.NumDescriptorRanges = _countof(descriptorRangeForInstancing);
+
+	const uint32_t kNumInstance = 10;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> instancingResource = CreateBufferResource(
+		device, sizeof(TransformationMatrix) * kNumInstance
+	);
+
+	TransformationMatrix* instancingData = nullptr;
+	instancingResource->Map(0, nullptr, reinterpret_cast<void**>(&instancingData));
+	for (uint32_t index = 0;index < kNumInstance;++index) {
+		instancingData[index].WVP = MakeIdenty4x4();
+		instancingData[index].World = MakeIdenty4x4();
+	}
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC instancingSrvDesc{};
+	instancingSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	instancingSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	instancingSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	instancingSrvDesc.Buffer.FirstElement = 0;
+	instancingSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	instancingSrvDesc.Buffer.NumElements = kNumInstance;
+	instancingSrvDesc.Buffer.StructureByteStride = sizeof(TransformationMatrix);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE instancingSrvHandleCPU = GetCPUDescriptorHandle(srvDescriptorHeap, desriptorSizeSRV, 3);
+	D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU = GetGPUDescriptorHandle(srvDescriptorHeap, desriptorSizeSRV, 3);
+	device->CreateShaderResourceView(instancingResource.Get(), &instancingSrvDesc, instancingSrvHandleCPU);
+
+	Transform transforms[kNumInstance];
+	for (uint32_t index = 0;index < kNumInstance;++index) {
+		transforms[index].scale = { 1.0f,1.0f,1.0f };
+		transforms[index].rotate = { 0.0f,0.0f,0.0f };
+		transforms[index].translate = { index * 0.1f,index * 0.1f,index * 0.1f };
+	}
+
 	MSG msg{};
 	while (msg.message != WM_QUIT) {
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -852,6 +905,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
 
+			for (uint32_t index = 0;index < kNumInstance;++index) {
+				Matrix4x4 worldMatrix2 = MakeAffinMatrix(transforms[index].scale, transforms[index].rotate, transforms[index].translate);
+				Matrix4x4 worldViewProjectionMatrixSprite2 = Multiply(worldMatrix2, Multiply(viewMatrix, projectionMatrix));
+				instancingData[index].World = worldViewProjectionMatrixSprite2;
+				instancingData[index].WVP = worldMatrix2;
+			}
 
 
 			D3D12_RESOURCE_BARRIER barrier{};
@@ -883,25 +942,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			
 			
 
-			commandList->SetGraphicsRootConstantBufferView(3,directionalLightDataResource->GetGPUVirtualAddress());
+			//commandList->SetGraphicsRootConstantBufferView(3,directionalLightDataResource->GetGPUVirtualAddress());
+
 
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+			commandList->SetGraphicsRootDescriptorTable(1, instancingSrvHandleGPU);
+			commandList->DrawInstanced(UINT(modelData.vertices.size()), kNumInstance, 0, 0);
 			commandList->SetGraphicsRootConstantBufferView(0, materialResourceSprite->GetGPUVirtualAddress());
 
 			
 
-			commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
+			//commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 			//commandList->DrawInstanced(latIndex * lonIndex * 6, 1, 0, 0);
-			commandList->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
+			//commandList->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 			
             commandList->IASetIndexBuffer(&indexBufferViewSprite);
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 			
 			commandList->SetGraphicsRootConstantBufferView(0, materialSpriteResourceSprite->GetGPUVirtualAddress());
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
-			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
+			//commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 			//commandList->DrawInstanced(6, 1, 0, 0);
 			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
