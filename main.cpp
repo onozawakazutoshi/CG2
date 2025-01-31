@@ -1,5 +1,8 @@
 #include "Input.h"
 #include "WinApp.h"
+#include "DirectXCommon.h"
+#include "Logger.h"
+#include "StringUtility.h"
 #pragma warning(push)
 #define _USE_MATH_DEFINES
 #pragma warning(disable:4023)
@@ -34,11 +37,8 @@
 
 #include "externals/DirectXTex/DirectXTex.h"
 
-
-
-void Log(const std::string& message);
-std::wstring ConvertString(const std::string& str);
-std::string ConvertString(const std::wstring& str);
+//std::wstring (const std::string& str);
+//std::string ConvertString(const std::wstring& str);
 
 Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
 	const std::wstring& filePath,
@@ -130,21 +130,24 @@ Matrix4x4 MakeRotateZMatrix(Vector3& vector);
 Matrix4x4 MakePerspectiveMatrix(float fovY, float aspectRatio, float nearClip, float farClip);
 Matrix4x4 Inverse(Matrix4x4& m);
 
-Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr <ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+//Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr <ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
 DirectX::ScratchImage LoadTexture(const std::string& filePath);
 Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, const DirectX::TexMetadata& metadata);
 void UploadTextureData(Microsoft::WRL::ComPtr < ID3D12Resource> texture, const DirectX::ScratchImage& mipImages);
 
-Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height);
+//Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height);
 Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip);
 
-D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
-D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
+//D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
+//D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
 
 ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 
 MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
+
+DirectXCommon* dxCommon = nullptr;
+Logger* Log = new Logger;
 
 // windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -153,6 +156,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	WinApp* winapp = new WinApp;
 	winapp->Initialize();
+
+	
 
 	//windo_ = new Windo();
 	//log_ = new Log;
@@ -169,7 +174,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 #endif // _DEBUG
 	//出力ウィンドウの文字出力
-	Log("Hello,DirectX\n");
+	Log->Log("Hello,DirectX\n");
 
 	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory = nullptr;
 
@@ -177,6 +182,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	assert(SUCCEEDED(hr));
 
+	dxCommon = new DirectXCommon;
+	dxCommon->Initialize(winapp,hr);
 
 	Microsoft::WRL::ComPtr <IDXGIAdapter4> useAdapter = nullptr;
 
@@ -189,8 +196,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		assert(SUCCEEDED(hr));
 
 		if (!(adapterDesc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE)) {
-
-			Log(ConvertString(std::format(L"Use Adapater:{}\n", adapterDesc.Description)));
+			Log->Log(StringUtility::ConvertString(std::format(L"Use Adapater:{}\n", adapterDesc.Description)));
 			break;
 		}
 		useAdapter = nullptr;
@@ -210,13 +216,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		hr = D3D12CreateDevice(useAdapter.Get(), featureLevels[i], IID_PPV_ARGS(&device));
 
 		if (SUCCEEDED(hr)) {
-			Log((std::format("FeatureLevel : {}\n", featureLevelStrings[i])));
+			Log->Log((std::format("FeatureLevel : {}\n", featureLevelStrings[i])));
 			break;
 		}
 	}
 
 	assert(device != nullptr);
-	Log("Complete create D3D12Device!!!\n");
+	Log->Log("Complete create D3D12Device!!!\n");
 #ifdef _DEBUG
 	Microsoft::WRL::ComPtr <ID3D12InfoQueue> infoQueue = nullptr;
 	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
@@ -241,58 +247,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 #endif // _DEBUG
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
-	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
-	hr = device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue));
-	assert(SUCCEEDED(hr));
+	dxCommon->ComInitialize();
 
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator = nullptr;
-	hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
-	assert(SUCCEEDED(hr));
+	
 
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList = nullptr;
-	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
-	assert(SUCCEEDED(hr));
+	
 
-	Microsoft::WRL::ComPtr <IDXGISwapChain4> swapChain = nullptr;
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = winapp->kClientWidth;
-	swapChainDesc.Height = winapp->kClientHeight;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = 2;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-
-	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue.Get(), winapp->hwnd_, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf()));
-	assert(SUCCEEDED(hr));
-
-	Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> rtvDescriptorHeap = CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
-	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
-	rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvDescriptorHeapDesc.NumDescriptors = 2;
-	hr = device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap));
-	assert(SUCCEEDED(hr));
-
-	Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> srvDescriptorHeap = CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
+	//Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> srvDescriptorHeap = dxCommon->CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> swapChainResources[2] = { nullptr };
+	/*Microsoft::WRL::ComPtr < ID3D12Resource> swapChainResources[2] = { nullptr };
 	hr = swapChain->GetBuffer(0, IID_PPV_ARGS(&swapChainResources[0]));
 	assert(SUCCEEDED(hr));
 	hr = swapChain->GetBuffer(1, IID_PPV_ARGS(&swapChainResources[1]));
-	assert(SUCCEEDED(hr));
-	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+	assert(SUCCEEDED(hr));*/
+	/*D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;*/
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
+	/*D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];*/
 
-	rtvHandles[0] = rtvStartHandle;
+	/*rtvHandles[0] = rtvStartHandle;
 	device->CreateRenderTargetView(swapChainResources[0].Get(), &rtvDesc, rtvHandles[0]);
 	rtvHandles[1].ptr = rtvHandles[0].ptr + device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	device->CreateRenderTargetView(swapChainResources[1].Get(), &rtvDesc, rtvHandles[1]);
+	device->CreateRenderTargetView(swapChainResources[1].Get(), &rtvDesc, rtvHandles[1]);*/
 
 	Microsoft::WRL::ComPtr < ID3D12Fence> fence = nullptr;
 	uint64_t fenceValue = 0;
@@ -363,15 +342,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> depthStencilResource = CreateDepthStencilTextureResource(device, winapp->kClientWidth, winapp->kClientHeight);
+	Microsoft::WRL::ComPtr < ID3D12Resource> depthStencilResource = dxCommon->CreateDepthStencilTextureResource(device, winapp->kClientWidth, winapp->kClientHeight);
 
-	Microsoft::WRL::ComPtr < ID3D12DescriptorHeap>dsvDescriptorHeap = CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
+	//Microsoft::WRL::ComPtr < ID3D12DescriptorHeap>dsvDescriptorHeap = dxCommon->CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
 
-	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	/*D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-	device->CreateDepthStencilView(depthStencilResource.Get(), &dsvDesc, dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	device->CreateDepthStencilView(depthStencilResource.Get(), &dsvDesc, dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());*/
+
+
+
+
+
+
 
 	Microsoft::WRL::ComPtr <IDxcUtils>dxcUtils = nullptr;
 	Microsoft::WRL::ComPtr <IDxcCompiler3> dxcCompiler = nullptr;
@@ -442,7 +427,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 	if (FAILED(hr)) {
-		Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		Log->Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
 
@@ -688,13 +673,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	}
 
-	const uint32_t desriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	/*const uint32_t desriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	const uint32_t desriptorSizeRTV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	const uint32_t desriptorSizeDSV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	const uint32_t desriptorSizeDSV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);*/
 
-	GetCPUDescriptorHandle(rtvDescriptorHeap.Get(), desriptorSizeRTV, 0);
+	/*GetCPUDescriptorHandle(rtvDescriptorHeap.Get(), desriptorSizeRTV, 0);*/
 
-	DirectX::ScratchImage mipImage2 = LoadTexture("./resources/monsterBall.png");
+	/*DirectX::ScratchImage mipImage2 = LoadTexture("./resources/monsterBall.png");
 	const DirectX::TexMetadata& metadata2 = mipImage2.GetMetadata();
 	Microsoft::WRL::ComPtr <ID3D12Resource> textureResource2 = CreateTextureResource(device, metadata2);
 	UploadTextureData(textureResource2.Get(), mipImage2);
@@ -704,12 +689,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	srvDesc2.Format = metadata2.format;
 	srvDesc2.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc2.Texture2D.MipLevels = UINT(metadata2.mipLevels);
+	srvDesc2.Texture2D.MipLevels = UINT(metadata2.mipLevels);*/
 
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2 = GetCPUDescriptorHandle(srvDescriptorHeap.Get(), desriptorSizeSRV, 2);
+	/*D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2 = GetCPUDescriptorHandle(srvDescriptorHeap.Get(), desriptorSizeSRV, 2);
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2 = GetGPUDescriptorHandle(srvDescriptorHeap.Get(), desriptorSizeSRV, 2);
 
-	device->CreateShaderResourceView(textureResource2.Get(), &srvDesc2, textureSrvHandleCPU2);
+	device->CreateShaderResourceView(textureResource2.Get(), &srvDesc2, textureSrvHandleCPU2);*/
 
 
 	D3D12_VIEWPORT viewport{};
@@ -988,38 +973,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	return 0;
 }
 
+//std::wstring ConvertString(const std::string& str) {
+//	if (str.empty()) {
+//		return std::wstring();
+//	}
+//
+//	auto sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), NULL, 0);
+//	if (sizeNeeded == 0) {
+//		return std::wstring();
+//	}
+//	std::wstring result(sizeNeeded, 0);
+//	MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), &result[0], sizeNeeded);
+//	return result;
+//}
 
-void Log(const std::string& message) {
-	OutputDebugStringA(message.c_str());
-}
-
-std::wstring ConvertString(const std::string& str) {
-	if (str.empty()) {
-		return std::wstring();
-	}
-
-	auto sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), NULL, 0);
-	if (sizeNeeded == 0) {
-		return std::wstring();
-	}
-	std::wstring result(sizeNeeded, 0);
-	MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), &result[0], sizeNeeded);
-	return result;
-}
-
-std::string ConvertString(const std::wstring& str) {
-	if (str.empty()) {
-		return std::string();
-	}
-
-	auto sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), NULL, 0, NULL, NULL);
-	if (sizeNeeded == 0) {
-		return std::string();
-	}
-	std::string result(sizeNeeded, 0);
-	WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), result.data(), sizeNeeded, NULL, NULL);
-	return result;
-}
+//std::string ConvertString(const std::wstring& str) {
+//	if (str.empty()) {
+//		return std::string();
+//	}
+//
+//	auto sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), NULL, 0, NULL, NULL);
+//	if (sizeNeeded == 0) {
+//		return std::string();
+//	}
+//	std::string result(sizeNeeded, 0);
+//	WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), result.data(), sizeNeeded, NULL, NULL);
+//	return result;
+//}
 
 //LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 //	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
@@ -1057,7 +1037,7 @@ Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
 	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
 	Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
 ) {
-	Log(ConvertString(std::format(L"Begin CompileShader, path:{},profile:{}\n", filePath, profile)));
+	Log->Log(StringUtility::ConvertString(std::format(L"Begin CompileShader, path:{},profile:{}\n", filePath, profile)));
 
 	Microsoft::WRL::ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
 
@@ -1092,7 +1072,7 @@ Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
 	Microsoft::WRL::ComPtr < IDxcBlobUtf8> shaderError = nullptr;
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
-		Log(shaderError->GetStringPointer());
+		Log->Log(shaderError->GetStringPointer());
 		assert(false);
 	}
 
@@ -1100,7 +1080,7 @@ Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
 
-	Log(ConvertString(std::format(L"Compile Succeeded,path:{},profile:{}\n", filePath, profile)));
+	Log->Log(StringUtility::ConvertString(std::format(L"Compile Succeeded,path:{},profile:{}\n", filePath, profile)));
 
 	//shaderSource->Release();
 	//shaderResult->Release();
@@ -1410,20 +1390,20 @@ Matrix4x4 Inverse(Matrix4x4& m) {
 	}
 	return ans;
 }
-Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr < ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
-	Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> descriptorHeap = nullptr;
-	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc{};
-	descriptorHeapDesc.Type = heapType;
-	descriptorHeapDesc.NumDescriptors = numDescriptors;
-	descriptorHeapDesc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	HRESULT hr = device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
-	assert(SUCCEEDED(hr));
-	return descriptorHeap;
-
-}
+//Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr < ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
+//	Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> descriptorHeap = nullptr;
+//	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc{};
+//	descriptorHeapDesc.Type = heapType;
+//	descriptorHeapDesc.NumDescriptors = numDescriptors;
+//	descriptorHeapDesc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+//	HRESULT hr = device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
+//	assert(SUCCEEDED(hr));
+//	return descriptorHeap;
+//
+//}
 DirectX::ScratchImage LoadTexture(const std::string& filePath) {
 	DirectX::ScratchImage image{};
-	std::wstring filePathW = ConvertString(filePath);
+	std::wstring filePathW = StringUtility::ConvertString(filePath);
 	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
 	assert(SUCCEEDED(hr));
 
@@ -1480,38 +1460,38 @@ void UploadTextureData(Microsoft::WRL::ComPtr < ID3D12Resource> texture, const D
 
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height)
-{
-	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Width = width;
-	resourceDesc.Height = height;
-	resourceDesc.MipLevels = 1;
-	resourceDesc.DepthOrArraySize = 1;
-	resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	resourceDesc.SampleDesc.Count = 1;
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
-
-	D3D12_CLEAR_VALUE depthCllearValue{};
-	depthCllearValue.DepthStencil.Depth = 1.0f;
-	depthCllearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	Microsoft::WRL::ComPtr <ID3D12Resource> resource = nullptr;
-	HRESULT hr = device->CreateCommittedResource(
-		&heapProperties,
-		D3D12_HEAP_FLAG_NONE,
-		&resourceDesc,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		&depthCllearValue,
-		IID_PPV_ARGS(&resource)
-	);
-	assert(SUCCEEDED(hr));
-
-
-	return resource;
-}
+//Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height)
+//{
+//	D3D12_RESOURCE_DESC resourceDesc{};
+//	resourceDesc.Width = width;
+//	resourceDesc.Height = height;
+//	resourceDesc.MipLevels = 1;
+//	resourceDesc.DepthOrArraySize = 1;
+//	resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+//	resourceDesc.SampleDesc.Count = 1;
+//	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+//	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+//
+//	D3D12_HEAP_PROPERTIES heapProperties{};
+//	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+//
+//	D3D12_CLEAR_VALUE depthCllearValue{};
+//	depthCllearValue.DepthStencil.Depth = 1.0f;
+//	depthCllearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+//	Microsoft::WRL::ComPtr <ID3D12Resource> resource = nullptr;
+//	HRESULT hr = device->CreateCommittedResource(
+//		&heapProperties,
+//		D3D12_HEAP_FLAG_NONE,
+//		&resourceDesc,
+//		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+//		&depthCllearValue,
+//		IID_PPV_ARGS(&resource)
+//	);
+//	assert(SUCCEEDED(hr));
+//
+//
+//	return resource;
+//}
 
 Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip) {
 	Matrix4x4 ans = { 0 };
@@ -1590,17 +1570,17 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 //	}
 //}
 
-D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	handleCPU.ptr += (descriptorSize * index);
-	return handleCPU;
-}
+//D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+//	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+//	handleCPU.ptr += (descriptorSize * index);
+//	return handleCPU;
+//}
 
-D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
-	handleGPU.ptr += (descriptorSize * index);
-	return handleGPU;
-}
+//D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+//	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+//	handleGPU.ptr += (descriptorSize * index);
+//	return handleGPU;
+//}
 
 ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename)
 {
