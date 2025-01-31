@@ -421,6 +421,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;
 	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);
+
 	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters[3].Descriptor.ShaderRegister = 1;
@@ -943,34 +944,36 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			commandList->SetGraphicsRootSignature(rootSignature);
 			commandList->SetPipelineState(graphicsPipelineState);
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferView2);
+			//commandList->IASetVertexBuffers(0, 1, &vertexBufferView2);
 			
 			
-
-			commandList->SetGraphicsRootConstantBufferView(3,directionalLightDataResource->GetGPUVirtualAddress());
-
 
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-			commandList->SetGraphicsRootDescriptorTable(1, instancingSrvHandleGPU);
-			commandList->DrawInstanced(UINT(modelData.vertices.size()), kNumInstance, 0, 0);
 			commandList->SetGraphicsRootConstantBufferView(0, materialResourceSprite->GetGPUVirtualAddress());
+			
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
+			commandList->SetGraphicsRootDescriptorTable(1, instancingSrvHandleGPU);
+
+			commandList->SetGraphicsRootConstantBufferView(3,directionalLightDataResource->GetGPUVirtualAddress());
+			commandList->DrawInstanced(UINT(modelData.vertices.size()), kNumInstance, 0, 0);
+			
 
 			
 
 			//commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
-			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
+			//commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 			//commandList->DrawInstanced(latIndex * lonIndex * 6, 1, 0, 0);
 			//commandList->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 			
-            commandList->IASetIndexBuffer(&indexBufferViewSprite);
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
+            //commandList->IASetIndexBuffer(&indexBufferViewSprite);
+			//commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 			
-			commandList->SetGraphicsRootConstantBufferView(0, materialSpriteResourceSprite->GetGPUVirtualAddress());
-			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
+			//commandList->SetGraphicsRootConstantBufferView(0, materialSpriteResourceSprite->GetGPUVirtualAddress());
+			//commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			//commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 			//commandList->DrawInstanced(6, 1, 0, 0);
-			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+			//commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
