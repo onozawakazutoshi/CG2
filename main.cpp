@@ -505,7 +505,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Shader/Object3D.VS.hlsl",
+	IDxcBlob* vertexShaderBlob = CompileShader(L"Shader/Object3d.VS.hlsl",
 		L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(vertexShaderBlob != nullptr);
 
@@ -980,11 +980,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	wvpResource->Release();
 	rootSignature->Release();
 	graphicsPipelineState->Release();
-	infoQueue->Release();
+	//infoQueue->Release();
 
 	useAdapter->Release();
 	dxgiFactory->Release();
-	debufController->Release();
+	//debufController->Release();
 
 	signatureBlob->Release();
 	includeHandler->Release();
