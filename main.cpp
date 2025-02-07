@@ -691,7 +691,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate));
 			uvTransformMatrix = Multiply(uvTransformMatrix, MAkeTranslateMatrix(uvTransformSprite.translate));
 			materialDataSprite->uvTransform = uvTransformMatrix;
-			
+
 			UINT backBufferIndex = dxCommon->GetswapChain()->GetCurrentBackBufferIndex();
 			dxCommon->GetcommandList()->OMSetRenderTargets(1, &dxCommon->GetrtvHandles(backBufferIndex), false, nullptr);
 
@@ -711,18 +711,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
+			dxCommon->PreDraw();
 
-			dxCommon->GetcommandList()->ResourceBarrier(1, &barrier);
-			float clearColor[] = { 0.1f,0.25f,0.5f,1.0f };
-			dxCommon->GetcommandList()->ClearRenderTargetView(dxCommon->GetrtvHandles(backBufferIndex), clearColor, 0, nullptr);
-
-			dxCommon->GetcommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-			ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon->GetsrvDescriptorHeap().Get()};
-			dxCommon->GetcommandList()->SetDescriptorHeaps(1, descriptorHeaps);
-
-			dxCommon->GetcommandList()->RSSetViewports(1, &dxCommon->Getviewport());
-			dxCommon->GetcommandList()->RSSetScissorRects(1, &dxCommon->GetscissorRect());
 
 			dxCommon->GetcommandList()->SetGraphicsRootSignature(rootSignature.Get());
 			dxCommon->GetcommandList()->SetPipelineState(graphicsPipelineState.Get());
@@ -754,32 +744,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetcommandList().Get());
 
-			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-
-
-
-			dxCommon->GetcommandList()->ResourceBarrier(1, &barrier);
-			hr = dxCommon->GetcommandList()->Close();
-			assert(SUCCEEDED(hr));
-
-
-			ID3D12CommandList* commandLists[] = { dxCommon->GetcommandList().Get()};
-			dxCommon->GetcommandQueue()->ExecuteCommandLists(1, commandLists);
-			dxCommon->GetswapChain()->Present(1, 0);
-
-			fenceValue++;
-			dxCommon->GetcommandQueue()->Signal(dxCommon->Getfence().Get(), fenceValue);
-			if (dxCommon->Getfence()->GetCompletedValue() < fenceValue) {
-				dxCommon->Getfence()->SetEventOnCompletion(fenceValue, dxCommon->GetfenceEvent());
-				WaitForSingleObject(dxCommon->GetfenceEvent(), INFINITE);
-			}
-
-			hr = dxCommon->GetcommandAllocator()->Reset();
-			assert(SUCCEEDED(hr));
-			hr = dxCommon->GetcommandList()->Reset(dxCommon->GetcommandAllocator().Get(), nullptr);
-			assert(SUCCEEDED(hr));
-
+			dxCommon->PostDraw();
 		}
 	}
 	winapp->Finalize();

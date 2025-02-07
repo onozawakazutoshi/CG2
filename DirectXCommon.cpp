@@ -31,7 +31,7 @@ void DirectXCommon::Initialize(WinApp* winapp_, HRESULT hr, Microsoft::WRL::ComP
 	Scissor();//シザリング
 	DXCcom();//DXC
 	
-	
+	input->Initialize(winapp);
 
 	ImGuiInitialize();//ImGuiの初期化
 }
@@ -369,38 +369,68 @@ void DirectXCommon::Scissor()
 
 void DirectXCommon::PreDraw()
 {
-	UINT backBufferIndex = swapChain()->GetCurrentBackBufferIndex();
-	commandList()->OMSetRenderTargets(1, rtvHandles(backBufferIndex), false, nullptr);
+	
+	commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-	commandList()->OMSetRenderTargets(1, rtvHandles(backBufferIndex), false, &dsvHandle);
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
 
 	input->Updat();
 
 
-	D3D12_RESOURCE_BARRIER barrier{};
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = dxCommon->GetswapChainResources(backBufferIndex).Get();
+	barrier.Transition.pResource = GetswapChainResources(backBufferIndex).Get();
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 
 
 
-	dxCommon->GetcommandList()->ResourceBarrier(1, &barrier);
+	commandList->ResourceBarrier(1, &barrier);
 	float clearColor[] = { 0.1f,0.25f,0.5f,1.0f };
-	dxCommon->GetcommandList()->ClearRenderTargetView(dxCommon->GetrtvHandles(backBufferIndex), clearColor, 0, nullptr);
+	commandList->ClearRenderTargetView(GetrtvHandles(backBufferIndex), clearColor, 0, nullptr);
 
-	dxCommon->GetcommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon->GetsrvDescriptorHeap().Get() };
-	dxCommon->GetcommandList()->SetDescriptorHeaps(1, descriptorHeaps);
+	ID3D12DescriptorHeap* descriptorHeaps[] = { GetsrvDescriptorHeap().Get() };
+	commandList->SetDescriptorHeaps(1, descriptorHeaps);
 
-	dxCommon->GetcommandList()->RSSetViewports(1, &dxCommon->Getviewport());
-	dxCommon->GetcommandList()->RSSetScissorRects(1, &dxCommon->GetscissorRect());
+	commandList->RSSetViewports(1, &Getviewport());
+	commandList->RSSetScissorRects(1, &GetscissorRect());
 
+}
+
+void DirectXCommon::PostDraw()
+{
+	
+
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+
+
+
+	GetcommandList()->ResourceBarrier(1, &barrier);
+	hr = GetcommandList()->Close();
+	assert(SUCCEEDED(hr));
+
+
+	ID3D12CommandList* commandLists[] = { GetcommandList().Get() };
+	GetcommandQueue()->ExecuteCommandLists(1, commandLists);
+	GetswapChain()->Present(1, 0);
+
+	fenceValue++;
+	GetcommandQueue()->Signal(Getfence().Get(), fenceValue);
+	if (Getfence()->GetCompletedValue() < fenceValue) {
+		Getfence()->SetEventOnCompletion(fenceValue, GetfenceEvent());
+		WaitForSingleObject(GetfenceEvent(), INFINITE);
+	}
+
+	hr = GetcommandAllocator()->Reset();
+	assert(SUCCEEDED(hr));
+	hr = GetcommandList()->Reset(GetcommandAllocator().Get(), nullptr);
+	assert(SUCCEEDED(hr));
 }
 
 DirectX::ScratchImage DirectXCommon::LoadTexture(const std::string& filePath)

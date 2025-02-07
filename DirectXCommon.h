@@ -9,6 +9,7 @@
 #include "externals/DirectXTex/DirectXTex.h"
 #include <cmath>
 #include "StringUtility.h"
+#include "Input.h"
 
 
 class DirectXCommon
@@ -44,6 +45,8 @@ public:
 	void Scissor();
 
 	void PreDraw();
+
+	void PostDraw();
 
 	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
@@ -172,5 +175,10 @@ private:
 	HANDLE fenceEvent;
 
 	Logger* log = new Logger;
+	Input* input = new Input();
+	
+
+	D3D12_RESOURCE_BARRIER barrier{};
+	UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 };
 
