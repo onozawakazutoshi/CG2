@@ -32,6 +32,7 @@
 #include "externals/DirectXTex/DirectXTex.h"
 
 #include <random>
+#include <numbers>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -126,7 +127,7 @@ Matrix4x4  MAkeScaleMatrix(Vector3& vector3);
 
 Matrix4x4 MakeRotateXMatrix(Vector3& vector);
 
-Matrix4x4 MakeRotateYMatrix(Vector3& vector);
+Matrix4x4 MakeRotateYMatrix(float radian);
 
 Matrix4x4 MakeRotateZMatrix(Vector3& vector);
 Matrix4x4 MakePerspectiveMatrix(float fovY, float aspectRatio, float nearClip, float farClip);
@@ -906,8 +907,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::End();
 
 			ImGui::Render();
-
 			
+			Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
 
 			//Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
 			Matrix4x4 worldMatrix = MakeAffinMatrix(transform.scale, transform.rotate, transform.translate);
@@ -1330,12 +1331,12 @@ Matrix4x4 MakeRotateXMatrix(Vector3& vector) {
 	return matrix;
 }
 
-Matrix4x4 MakeRotateYMatrix(Vector3& vector) {
+Matrix4x4 MakeRotateYMatrix(float radian) {
 	Matrix4x4 matrix{ 0 };
-	matrix.m[0][0] = std::cosf(vector.y);
-	matrix.m[0][2] = -std::sinf(vector.y);
-	matrix.m[2][0] = std::sinf(vector.y);
-	matrix.m[2][2] = std::cosf(vector.y);
+	matrix.m[0][0] = std::cosf(radian);
+	matrix.m[0][2] = -std::sinf(radian);
+	matrix.m[2][0] = std::sinf(radian);
+	matrix.m[2][2] = std::cosf(radian);
 	matrix.m[1][1] = 1;
 	matrix.m[3][3] = 1;
 	return matrix;
@@ -1851,7 +1852,7 @@ Particle MakeNewParticle(std::mt19937& randomEngine)
 	particle.transform.scale = { 0.5f,0.5f,0.5f };
 	particle.transform.rotate = { 0.0f,2.0f,0.0f };
 	particle.transform.translate = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
-	particle.velocity = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
+	//particle.velocity = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
 
 	std::uniform_real_distribution<float> distColor(0.0f, 1.0f);
 	particle.color = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine),1.0f };
