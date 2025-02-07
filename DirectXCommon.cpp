@@ -367,6 +367,42 @@ void DirectXCommon::Scissor()
 	scissorRect.bottom = winapp->kClientHeight;
 }
 
+void DirectXCommon::PreDraw()
+{
+	UINT backBufferIndex = swapChain()->GetCurrentBackBufferIndex();
+	commandList()->OMSetRenderTargets(1, rtvHandles(backBufferIndex), false, nullptr);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	commandList()->OMSetRenderTargets(1, rtvHandles(backBufferIndex), false, &dsvHandle);
+
+	input->Updat();
+
+
+	D3D12_RESOURCE_BARRIER barrier{};
+
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = dxCommon->GetswapChainResources(backBufferIndex).Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+
+
+
+	dxCommon->GetcommandList()->ResourceBarrier(1, &barrier);
+	float clearColor[] = { 0.1f,0.25f,0.5f,1.0f };
+	dxCommon->GetcommandList()->ClearRenderTargetView(dxCommon->GetrtvHandles(backBufferIndex), clearColor, 0, nullptr);
+
+	dxCommon->GetcommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+	ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon->GetsrvDescriptorHeap().Get() };
+	dxCommon->GetcommandList()->SetDescriptorHeaps(1, descriptorHeaps);
+
+	dxCommon->GetcommandList()->RSSetViewports(1, &dxCommon->Getviewport());
+	dxCommon->GetcommandList()->RSSetScissorRects(1, &dxCommon->GetscissorRect());
+
+}
+
 DirectX::ScratchImage DirectXCommon::LoadTexture(const std::string& filePath)
 {
 	DirectX::ScratchImage image{};

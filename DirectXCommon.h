@@ -43,6 +43,8 @@ public:
 
 	void Scissor();
 
+	void PreDraw();
+
 	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
 	Microsoft::WRL::ComPtr < IDxcBlob> GetvertexShaderBlob() {
