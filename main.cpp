@@ -118,6 +118,13 @@ struct Particle {
 	float currentTime;
 };
 
+struct Emitter {
+	Transform transform;
+	uint32_t count;
+	float frequency;
+	float frequencyTime;
+};
+
 Matrix4x4 MakeIdenty4x4();
 Matrix4x4 MakeAffinMatrix(const Vector3& S, const Vector3& R, const Vector3& T);
 Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2);
@@ -149,7 +156,9 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 
 MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 
-Particle MakeNewParticle(std::mt19937& randomEngine);
+Particle MakeNewParticle(std::mt19937& randomEngine, const Vector3& translate);
+
+std::list<Particle> Emit(const Emitter& emitter, std::mt19937& randomEngine);
 // windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	CoInitializeEx(0, COINIT_MULTITHREADED);
@@ -867,13 +876,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	std::random_device seedGenerator;
 	std::mt19937 randomEngine(seedGenerator());
 
-	Particle particles[kNumMaxInstance];
+	std::list<Particle> particles;
 
-	
-	
+	Emitter emitter{};
+	emitter.count = 3;
+	emitter.frequency = 0.5f;
+	emitter.frequencyTime = 0.0f;
+	emitter.transform.translate = { 0,0,0 };
+	emitter.transform.rotate = { 0,0,0 };
+	emitter.transform.scale = { 1,1,1 };
+
 	for (uint32_t index = 0;index < kNumMaxInstance;++index) {
 		
-		particles[index] = MakeNewParticle(randomEngine);
+		particles.push_back(MakeNewParticle(randomEngine, emitter.transform.translate));
 	}
 	const float kDeltaTime = 1.0f / 60.0f;
 
@@ -904,9 +919,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::SliderAngle("UVROtate", &uvTransformSprite.rotate.z);
 
 
-			ImGui::DragFloat2("rotate", &particles[0].transform.rotate.x, 0.01f, -10.0f, 10.0f);
-			ImGui::DragFloat2("scale", &particles[0].transform.scale.x, 0.01f, -10.0f, 10.0f);
-			ImGui::DragFloat3("translate", &particles[0].transform.translate.x, 0.01f, -10.0f, 10.0f);
+			//ImGui::DragFloat2("rotate", &particles..transform.rotate.x, 0.01f, -10.0f, 10.0f);
+			//ImGui::DragFloat2("scale", &particles[0].transform.scale.x, 0.01f, -10.0f, 10.0f);
+			//ImGui::DragFloat3("translate", &particles[0].transform.translate.x, 0.01f, -10.0f, 10.0f);
+			
+			if (ImGui::Button("Add Particle")) {
+				particles.splice(particles.end(), Emit(emitter, randomEngine));
+			}
+
+			ImGui::DragFloat3("EmitterTranslate", &emitter.transform.translate.x, 0.01f, -100.0f, 100.0f);
 
 			ImGui::End();
 
@@ -951,29 +972,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
 
 			
+			emitter.frequencyTime += kDeltaTime;
+			if (emitter.frequency <= emitter.frequencyTime) {
+				particles.splice(particles.end(), Emit(emitter, randomEngine));
+				emitter.frequencyTime -= emitter.frequency;
+			}
 			
 
 			uint32_t numInstance = 0;
-			for (uint32_t index = 0;index < kNumMaxInstance;++index) {
-				if (particles[index].lifeTime <= particles[index].currentTime) {
+			
+
+			for (std::list<Particle>::iterator particleIterator = particles.begin();
+				particleIterator != particles.end();
+				++particleIterator
+				) {
+				if ((*particleIterator).lifeTime <= (*particleIterator).currentTime) {
 					continue;
 				}
-				particles[index].currentTime += kDeltaTime;
+				(*particleIterator).currentTime += kDeltaTime;
 
-				float alpha = 1.0f - (particles[index].currentTime / particles[index].lifeTime);
-				
-				particles[index].transform.translate.x += particles[index].velocity.x * kDeltaTime;
-				particles[index].transform.translate.y += particles[index].velocity.y * kDeltaTime;
-				particles[index].color.w = alpha;
-				
-				Matrix4x4 transformMatrix = MakeAffinMatrix(particles[index].transform.scale, Vector3(0,0, 0), particles[index].transform.translate);
+				float alpha = 1.0f - ((*particleIterator).currentTime / (*particleIterator).lifeTime);
+
+				(*particleIterator).transform.translate.x += (*particleIterator).velocity.x * kDeltaTime;
+				(*particleIterator).transform.translate.y += (*particleIterator).velocity.y * kDeltaTime;
+				(*particleIterator).color.w = alpha;
+
+				Matrix4x4 transformMatrix = MakeAffinMatrix((*particleIterator).transform.scale, Vector3(0, 0, 0), (*particleIterator).transform.translate);
 				Matrix4x4 worldMatrix2 = Multiply(billboardMatrix, transformMatrix);
 				Matrix4x4 worldViewProjectionMatrixSprite2 = Multiply(worldMatrix2, Multiply(viewMatrix, projectionMatrix));
-				instancingData[index].World = worldMatrix2;
-				instancingData[index].WVP = worldViewProjectionMatrixSprite2;
+				
 
-				instancingData[index].color = particles[index].color;
-				++numInstance;
+				instancingData[numInstance].color = (*particleIterator).color;
+				//++particleIterator;
+				if (numInstance < kNumMaxInstance) {
+					
+					instancingData[numInstance].World = worldMatrix2;
+				instancingData[numInstance].WVP = worldViewProjectionMatrixSprite2;
+					//instancingData[numInstance].WVP = worldViewProjectionMatrix;
+					++numInstance;
+				}
+
 			}
 
 
@@ -1860,22 +1898,33 @@ MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const st
 	return materialData;
 }
 
-Particle MakeNewParticle(std::mt19937& randomEngine)
+Particle MakeNewParticle(std::mt19937& randomEngine,const Vector3& translate)
 {
 	std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
 	Particle particle;
 	particle.transform.scale = { 1.0f,1.0f,1.0f };
-//	particle.transform.scale = { 1,1,1 };
+
 	particle.transform.rotate = { 0.0f,2.0f,0.0f };
-	particle.transform.translate = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
-//	particle.transform.translate = { 0,0,0};
+
+	Vector3 randomTranslate{ distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
+	particle.transform.translate = { translate.x+ randomTranslate.x,translate.y + randomTranslate.y ,translate.z + randomTranslate.z };
+
 	particle.velocity = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
-	//particle.velocity = { 0,0,0 };
+
 	std::uniform_real_distribution<float> distColor(0.0f, 1.0f);
 	particle.color = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine),1.0f };
 	
-	std::uniform_real_distribution<float> distTime(1.0f, 10.0f);
+	std::uniform_real_distribution<float> distTime(1.0f, 3.0f);
 	particle.lifeTime = distTime(randomEngine);
 	particle.currentTime = 0;
 	return particle;
+}
+
+std::list<Particle> Emit(const Emitter& emitter, std::mt19937& randomEngine)
+{
+	std::list<Particle> particles;
+	for (uint32_t count = 0;count < emitter.count;++count) {
+		particles.push_back(MakeNewParticle(randomEngine,emitter.transform.translate));
+	}
+	return particles;
 }
