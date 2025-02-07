@@ -125,11 +125,11 @@ Matrix4x4 MAkeTranslateMatrix(const Vector3& vector3);
 
 Matrix4x4  MAkeScaleMatrix(Vector3& vector3);
 
-Matrix4x4 MakeRotateXMatrix(Vector3& vector);
+Matrix4x4 MakeRotateXMatrix(float radian);
 
 Matrix4x4 MakeRotateYMatrix(float radian);
 
-Matrix4x4 MakeRotateZMatrix(Vector3& vector);
+Matrix4x4 MakeRotateZMatrix(float radian);
 Matrix4x4 MakePerspectiveMatrix(float fovY, float aspectRatio, float nearClip, float farClip);
 Matrix4x4 Inverse(Matrix4x4& m);
 
@@ -776,7 +776,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	scissorRect.top = 0;
 	scissorRect.bottom = kClientHeight;
 
-	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-30.0f} };
+	Transform cameraTransform{ 
+		{1.0f,1.0f,1.0f},
+		{std::numbers::pi_v<float>/3.0f,std::numbers::pi_v<float>,0.0f},
+		{0.0f,18.0f,10.0f} 
+	};
 
 	ID3D12Resource* directionalLightDataResource = CreateBufferResource(device, sizeof(DirectionalLight));
 	DirectionalLight* directionalLightData = nullptr;
@@ -890,7 +894,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			ImGui::Begin("Color");
 			ImGui::SliderFloat4("Color", &materialData->color.x, 0.0f, 1.0f);
-			ImGui::SliderFloat3("Camera", &cameraTransform.translate.x, -150.0f, 150.0f);
+			ImGui::SliderFloat3("Camera", &cameraTransform.translate.x, -23.0f, 23.0f);
 			ImGui::SliderFloat4("dir", &directionalLightData->direction.x, -1.0f, 1.0f);
 			
 			ImGui::Checkbox("useMonsterBall", &useMonsterBall);
@@ -909,13 +913,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::Render();
 			
 			Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
+			Matrix4x4 cameraMatrix = MakeAffinMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
+			Matrix4x4 billboardMatrix = Multiply(backToFrontMatrix, cameraMatrix);
+			billboardMatrix.m[3][0] = 0.0f;
+			billboardMatrix.m[3][1] = 0.0f;
+			billboardMatrix.m[3][2] = 0.0f;
+
 
 			//Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
-			Matrix4x4 worldMatrix = MakeAffinMatrix(transform.scale, transform.rotate, transform.translate);
-			Matrix4x4 cameraMatrix = MakeAffinMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
+			//Matrix4x4 worldMatrix = MakeAffinMatrix(transform.scale, transform.rotate, transform.translate);
+			Matrix4x4 worldMatrix = Multiply(billboardMatrix,MakeAffinMatrix(transform.scale, Vector3(0, 0, 0), transform.translate));
 			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
 			Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
-			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
+			Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
+			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
 			Matrix4x4 transformationMatrixDate = worldViewProjectionMatrix;
 			//Matrix4x4 worldMatrix = MakeAffinMatrix(transform.scale, transform.rotate, transform.translate);
 			wvpData->World = worldMatrix;
@@ -929,7 +940,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
 
 			Matrix4x4 uvTransformMatrix = MAkeScaleMatrix(uvTransformSprite.scale);
-			uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate));
+			uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate.z));
 			uvTransformMatrix = Multiply(uvTransformMatrix, MAkeTranslateMatrix(uvTransformSprite.translate));
 			materialDataSprite->uvTransform = uvTransformMatrix;
 
@@ -938,6 +949,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
+
+			
+			
 
 			uint32_t numInstance = 0;
 			for (uint32_t index = 0;index < kNumMaxInstance;++index) {
@@ -952,10 +966,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				particles[index].transform.translate.y += particles[index].velocity.y * kDeltaTime;
 				particles[index].color.w = alpha;
 				
-				Matrix4x4 worldMatrix2 = MakeAffinMatrix(particles[index].transform.scale, particles[index].transform.rotate, particles[index].transform.translate);
+				Matrix4x4 transformMatrix = MakeAffinMatrix(particles[index].transform.scale, Vector3(0,0, 0), particles[index].transform.translate);
+				Matrix4x4 worldMatrix2 = Multiply(billboardMatrix, transformMatrix);
 				Matrix4x4 worldViewProjectionMatrixSprite2 = Multiply(worldMatrix2, Multiply(viewMatrix, projectionMatrix));
-				instancingData[index].World = worldViewProjectionMatrixSprite2;
-				instancingData[index].WVP = worldMatrix2;
+				instancingData[index].World = worldMatrix2;
+				instancingData[index].WVP = worldViewProjectionMatrixSprite2;
+
 				instancingData[index].color = particles[index].color;
 				++numInstance;
 			}
@@ -1080,7 +1096,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	includeHandler->Release();
 	dxcCompiler->Release();
 	dxcUtils->Release();
-	useAdapter->Release();
 	mipImages.Release();
 	CloseHandle(fenceEvent);
 	pixelShaderBlob->Release();
@@ -1283,7 +1298,7 @@ Matrix4x4 MakeAffinMatrix(const Vector3& S, const Vector3& R, const Vector3& T) 
 	Vector3 R2 = R;
 	Vector3 T2 = T;
 	Matrix4x4 matrixS = MAkeTranslateMatrix(S2);
-	Matrix4x4 matrixR = Multiply(MakeRotateXMatrix(R2), Multiply(MakeRotateYMatrix(R2), MakeRotateZMatrix(R2)));
+	Matrix4x4 matrixR = Multiply(MakeRotateXMatrix(R2.x), Multiply(MakeRotateYMatrix(R2.y), MakeRotateZMatrix(R2.z)));
 	Matrix4x4 matrixT = MAkeScaleMatrix(T2);
 	ans = Multiply(matrixS, Multiply(matrixR, matrixT));
 	return ans;
@@ -1320,12 +1335,12 @@ Matrix4x4  MAkeScaleMatrix(Vector3& vector3) {
 	return ans;
 }
 
-Matrix4x4 MakeRotateXMatrix(Vector3& vector) {
+Matrix4x4 MakeRotateXMatrix(float radian) {
 	Matrix4x4 matrix{ 0 };
-	matrix.m[1][1] = std::cosf(vector.x);
-	matrix.m[1][2] = std::sinf(vector.x);
-	matrix.m[2][1] = -std::sinf(vector.x);
-	matrix.m[2][2] = std::cosf(vector.x);
+	matrix.m[1][1] = std::cosf(radian);
+	matrix.m[1][2] = std::sinf(radian);
+	matrix.m[2][1] = -std::sinf(radian);
+	matrix.m[2][2] = std::cosf(radian);
 	matrix.m[0][0] = 1;
 	matrix.m[3][3] = 1;
 	return matrix;
@@ -1342,12 +1357,12 @@ Matrix4x4 MakeRotateYMatrix(float radian) {
 	return matrix;
 }
 
-Matrix4x4 MakeRotateZMatrix(Vector3& vector) {
+Matrix4x4 MakeRotateZMatrix(float radian) {
 	Matrix4x4 matrix{ 0 };
-	matrix.m[0][0] = std::cosf(vector.z);
-	matrix.m[0][1] = std::sinf(vector.z);
-	matrix.m[1][0] = -std::sinf(vector.z);
-	matrix.m[1][1] = std::cosf(vector.z);
+	matrix.m[0][0] = std::cosf(radian);
+	matrix.m[0][1] = std::sinf(radian);
+	matrix.m[1][0] = -std::sinf(radian);
+	matrix.m[1][1] = std::cosf(radian);
 	matrix.m[2][2] = 1;
 	matrix.m[3][3] = 1;
 	return matrix;
@@ -1849,15 +1864,17 @@ Particle MakeNewParticle(std::mt19937& randomEngine)
 {
 	std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
 	Particle particle;
-	particle.transform.scale = { 0.5f,0.5f,0.5f };
+	particle.transform.scale = { 1.0f,1.0f,1.0f };
+//	particle.transform.scale = { 1,1,1 };
 	particle.transform.rotate = { 0.0f,2.0f,0.0f };
 	particle.transform.translate = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
-	//particle.velocity = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
-
+//	particle.transform.translate = { 0,0,0};
+	particle.velocity = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
+	//particle.velocity = { 0,0,0 };
 	std::uniform_real_distribution<float> distColor(0.0f, 1.0f);
 	particle.color = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine),1.0f };
 	
-	std::uniform_real_distribution<float> distTime(1.0f, 3.0f);
+	std::uniform_real_distribution<float> distTime(1.0f, 10.0f);
 	particle.lifeTime = distTime(randomEngine);
 	particle.currentTime = 0;
 	return particle;
