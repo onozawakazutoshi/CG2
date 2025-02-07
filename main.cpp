@@ -603,7 +603,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{0.0f,0.0f,0.0f}
 	};
 
-	ModelData modelData = LoadObjFile("resources", "axis.obj");
+	ModelData modelData = LoadObjFile("resources", "plane.obj");
 
 	ID3D12Resource* vertexResource2 = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
 
@@ -843,8 +843,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Transform transforms[kNumInstance];
 	for (uint32_t index = 0;index < kNumInstance;++index) {
-		transforms[index].scale = { 1.0f,1.0f,1.0f };
-		transforms[index].rotate = { 0.0f,0.0f,0.0f };
+		transforms[index].scale = { 0.5f,0.5f,0.5f };
+		transforms[index].rotate = { 0.0f,2.0f,0.0f };
 		transforms[index].translate = { index * 0.1f,index * 0.1f,index * 0.1f };
 	}
 
@@ -875,9 +875,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::SliderAngle("UVROtate", &uvTransformSprite.rotate.z);
 
 
-			ImGui::DragFloat2("rotate", &transform.rotate.x, 0.01f, -10.0f, 10.0f);
-			ImGui::DragFloat2("scale", &transform.scale.x, 0.01f, -10.0f, 10.0f);
-			ImGui::DragFloat3("translate", &transform.translate.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat2("rotate", &transforms[0].rotate.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat2("scale", &transforms[0].scale.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat3("translate", &transforms[0].translate.x, 0.01f, -10.0f, 10.0f);
 
 			ImGui::End();
 
@@ -951,7 +951,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			commandList->SetGraphicsRootConstantBufferView(0, materialResourceSprite->GetGPUVirtualAddress());
 			
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferView2);
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			commandList->SetGraphicsRootDescriptorTable(1, instancingSrvHandleGPU);
 
