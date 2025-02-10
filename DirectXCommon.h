@@ -10,6 +10,7 @@
 #include <cmath>
 #include "StringUtility.h"
 #include "Input.h"
+#include <chrono>
 
 
 class DirectXCommon
@@ -49,6 +50,8 @@ public:
 	void PreDraw();
 
 	void PostDraw();
+
+	
 
 	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
@@ -131,6 +134,12 @@ public:
 
 
 private:
+
+	void InitializeFixFPS();
+
+	void UpdateFixFPS();
+
+	std::chrono::steady_clock::time_point reference_;
 
 	Microsoft::WRL::ComPtr<ID3D12Device> device = nullptr;
 	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory;
