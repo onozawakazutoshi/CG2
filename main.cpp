@@ -38,17 +38,6 @@
 
 #include "externals/DirectXTex/DirectXTex.h"
 
-//std::wstring (const std::string& str);
-//std::string ConvertString(const std::wstring& str);
-
-//Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
-//	const std::wstring& filePath,
-//	const wchar_t* profile,
-//	Microsoft::WRL::ComPtr < IDxcUtils> dxccUtils,
-//	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
-//	Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
-//);
-//Microsoft::WRL::ComPtr <ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 
@@ -131,17 +120,10 @@ Matrix4x4 MakeRotateZMatrix(Vector3& vector);
 Matrix4x4 MakePerspectiveMatrix(float fovY, float aspectRatio, float nearClip, float farClip);
 Matrix4x4 Inverse(Matrix4x4& m);
 
-//Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr <ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
-//DirectX::ScratchImage LoadTexture(const std::string& filePath);
-Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, const DirectX::TexMetadata& metadata);
-void UploadTextureData(Microsoft::WRL::ComPtr < ID3D12Resource> texture, const DirectX::ScratchImage& mipImages);
-
-//Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height);
 Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip);
 
-//D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
-//D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
+
 
 ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 
@@ -150,21 +132,13 @@ MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const st
 DirectXCommon* dxCommon = nullptr;
 Logger* Log = new Logger;
 
-// windowsアプリでのエントリーポイント(main関数)
+
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	D3DResourceLeakChecker checker;
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 
 	WinApp* winapp = new WinApp;
 	winapp->Initialize();
-
-	
-
-	//windo_ = new Windo();
-	//log_ = new Log;
-	//windo_->Initialize(kClientWidth, kClientHeight);
-	//windo_->Draw();
-
 
 	
 #ifdef _DEBUG
@@ -205,7 +179,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Microsoft::WRL::ComPtr <ID3D12Device> device = nullptr;
 
-	//ResourceObject dethStencilResource =  CreateDepthStencilTextureResource(device, kClientWidth, kClientHeight) ;
+	
 
 	D3D_FEATURE_LEVEL featureLevels[] = {
 		D3D_FEATURE_LEVEL_12_2,D3D_FEATURE_LEVEL_12_1,D3D_FEATURE_LEVEL_12_0
@@ -249,7 +223,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 #endif // _DEBUG
-	//dxCommon->ComInitialize();
+	
 
 	Microsoft::WRL::ComPtr < ID3D12Resource> VertexResourceSprite = dxCommon->CreateBufferResource(device.Get(), sizeof(VertexData) * 6);
 
@@ -760,50 +734,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	return 0;
 }
 
-//std::wstring ConvertString(const std::string& str) {
-//	if (str.empty()) {
-//		return std::wstring();
-//	}
-//
-//	auto sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), NULL, 0);
-//	if (sizeNeeded == 0) {
-//		return std::wstring();
-//	}
-//	std::wstring result(sizeNeeded, 0);
-//	MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), &result[0], sizeNeeded);
-//	return result;
-//}
 
-//std::string ConvertString(const std::wstring& str) {
-//	if (str.empty()) {
-//		return std::string();
-//	}
-//
-//	auto sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), NULL, 0, NULL, NULL);
-//	if (sizeNeeded == 0) {
-//		return std::string();
-//	}
-//	std::string result(sizeNeeded, 0);
-//	WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), result.data(), sizeNeeded, NULL, NULL);
-//	return result;
-//}
-
-//LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-//	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
-//		return true;
-//	}
-//	//メッセージに応じてゲーム固有の処理を行う
-//	switch (msg) {
-//		//ウィンドウが破棄された
-//	case WM_DESTROY:
-//		//OSに対して、アプリの終了を伝える
-//		PostQuitMessage(0);
-//		return 0;
-//	}
-//
-//	//標準のメッセージ処理を行う
-//	return DefWindowProc(hwnd, msg, wparam, lparam);
-//}
 Matrix4x4 MakeIdenty4x4()
 {
 	Matrix4x4 ans;
@@ -817,86 +748,7 @@ Matrix4x4 MakeIdenty4x4()
 	}
 	return ans;
 }
-//Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
-//	const std::wstring& filePath,
-//	const wchar_t* profile,
-//	Microsoft::WRL::ComPtr < IDxcUtils> dxccUtils,
-//	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
-//	Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
-//) {
-//	Log->Log(StringUtility::ConvertString(std::format(L"Begin CompileShader, path:{},profile:{}\n", filePath, profile)));
-//
-//	Microsoft::WRL::ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
-//
-//	HRESULT hr = dxccUtils->LoadFile(filePath.c_str(), nullptr, &shaderSource);
-//
-//	assert(SUCCEEDED(hr));
-//
-//	DxcBuffer shaderSourceBuffer;
-//	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
-//	shaderSourceBuffer.Size = shaderSource->GetBufferSize();
-//	shaderSourceBuffer.Encoding = DXC_CP_UTF8;
-//
-//	LPCWSTR arguments[] = {
-//		filePath.c_str(),
-//		L"-E",L"main",
-//		L"-T",profile,
-//		L"-Zi",L"-Qembed_debug",
-//		L"-Od",
-//		L"-Zpr",
-//	};
-//
-//	Microsoft::WRL::ComPtr <IDxcResult> shaderResult = nullptr;
-//	hr = dxcCompiler->Compile(
-//		&shaderSourceBuffer,
-//		arguments,
-//		_countof(arguments),
-//		includeHandler.Get(),
-//		IID_PPV_ARGS(&shaderResult)
-//	);
-//	assert(SUCCEEDED(hr));
-//
-//	Microsoft::WRL::ComPtr < IDxcBlobUtf8> shaderError = nullptr;
-//	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
-//	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
-//		Log->Log(shaderError->GetStringPointer());
-//		assert(false);
-//	}
-//
-//	Microsoft::WRL::ComPtr < IDxcBlob> shaderBlob = nullptr;
-//	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
-//	assert(SUCCEEDED(hr));
-//
-//	Log->Log(StringUtility::ConvertString(std::format(L"Compile Succeeded,path:{},profile:{}\n", filePath, profile)));
-//
-//	//shaderSource->Release();
-//	//shaderResult->Release();
-//
-//	return shaderBlob;
-//}
 
-//Microsoft::WRL::ComPtr < ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes)
-//{
-//	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-//	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-//
-//	D3D12_RESOURCE_DESC vertexResourceDesc{};
-//	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-//	vertexResourceDesc.Width = sizeInBytes;
-//
-//	vertexResourceDesc.Height = 1;
-//	vertexResourceDesc.DepthOrArraySize = 1;
-//	vertexResourceDesc.MipLevels = 1;
-//	vertexResourceDesc.SampleDesc.Count = 1;
-//
-//	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-//
-//	Microsoft::WRL::ComPtr <ID3D12Resource> vertexResource;
-//	device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
-//		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
-//
-//	return vertexResource;
-//}
 
 Matrix4x4 MakeAffinMatrix(const Vector3& S, const Vector3& R, const Vector3& T) {
 	Matrix4x4 ans{ 0 };
@@ -1177,108 +1029,7 @@ Matrix4x4 Inverse(Matrix4x4& m) {
 	}
 	return ans;
 }
-//Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr < ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
-//	Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> descriptorHeap = nullptr;
-//	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc{};
-//	descriptorHeapDesc.Type = heapType;
-//	descriptorHeapDesc.NumDescriptors = numDescriptors;
-//	descriptorHeapDesc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-//	HRESULT hr = device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
-//	assert(SUCCEEDED(hr));
-//	return descriptorHeap;
-//
-//}
-//DirectX::ScratchImage LoadTexture(const std::string& filePath) {
-//	DirectX::ScratchImage image{};
-//	std::wstring filePathW = StringUtility::ConvertString(filePath);
-//	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
-//	assert(SUCCEEDED(hr));
-//
-//	DirectX::ScratchImage mipImages{};
-//	hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
-//	assert(SUCCEEDED(hr));
-//
-//	return mipImages;
-//}
-//Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, const DirectX::TexMetadata& metadata) {
-//
-//	D3D12_RESOURCE_DESC resourceDesc{};
-//	resourceDesc.Width = UINT(metadata.width);
-//	resourceDesc.Height = UINT(metadata.height);
-//	resourceDesc.MipLevels = UINT16(metadata.mipLevels);
-//	resourceDesc.DepthOrArraySize = UINT16(metadata.arraySize);
-//	resourceDesc.Format = metadata.format;
-//	resourceDesc.SampleDesc.Count = 1;
-//	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION(metadata.dimension);
-//
-//	D3D12_HEAP_PROPERTIES heapProperties{};
-//	heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
-//	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-//	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-//
-//	Microsoft::WRL::ComPtr < ID3D12Resource> resource = nullptr;
-//
-//
-//	HRESULT hr = device->CreateCommittedResource(
-//		&heapProperties,
-//		D3D12_HEAP_FLAG_NONE,
-//		&resourceDesc,
-//		D3D12_RESOURCE_STATE_GENERIC_READ,
-//		nullptr,
-//		IID_PPV_ARGS(&resource));
-//	assert(SUCCEEDED(hr));
-//	return resource;
-//}
-//void UploadTextureData(Microsoft::WRL::ComPtr < ID3D12Resource> texture, const DirectX::ScratchImage& mipImages) {
-//	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
-//
-//	for (size_t mipLevel = 0;mipLevel < metadata.mipLevels;++mipLevel) {
-//		const DirectX::Image* img = mipImages.GetImage(mipLevel, 0, 0);
-//
-//		HRESULT hr = texture->WriteToSubresource(
-//			UINT(mipLevel),
-//			nullptr,
-//			img->pixels,
-//			UINT(img->rowPitch),
-//			UINT(img->slicePitch)
-//		);
-//		assert(SUCCEEDED(hr));
-//	}
-//
-//}
 
-//Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height)
-//{
-//	D3D12_RESOURCE_DESC resourceDesc{};
-//	resourceDesc.Width = width;
-//	resourceDesc.Height = height;
-//	resourceDesc.MipLevels = 1;
-//	resourceDesc.DepthOrArraySize = 1;
-//	resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-//	resourceDesc.SampleDesc.Count = 1;
-//	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-//	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-//
-//	D3D12_HEAP_PROPERTIES heapProperties{};
-//	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
-//
-//	D3D12_CLEAR_VALUE depthCllearValue{};
-//	depthCllearValue.DepthStencil.Depth = 1.0f;
-//	depthCllearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-//	Microsoft::WRL::ComPtr <ID3D12Resource> resource = nullptr;
-//	HRESULT hr = device->CreateCommittedResource(
-//		&heapProperties,
-//		D3D12_HEAP_FLAG_NONE,
-//		&resourceDesc,
-//		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-//		&depthCllearValue,
-//		IID_PPV_ARGS(&resource)
-//	);
-//	assert(SUCCEEDED(hr));
-//
-//
-//	return resource;
-//}
 
 Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip) {
 	Matrix4x4 ans = { 0 };
@@ -1293,81 +1044,7 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 
 }
 
-//void sphere(float kSubdivision,float latIndex, float lonIndex,VertexData vertexData[], ID3D12GraphicsCommandList commandList) {
-//	const float kLonEvery =(float) M_PI * 2.0f / float(kSubdivision);
-//
-//	const float kLatEvery=(float) M_PI / float(kSubdivision);
-//
-//	for (latIndex = 0;latIndex < kSubdivision;++latIndex) {
-//		float lat = (float) - M_PI / 2.0f + kLatEvery * latIndex;
-//		for (lonIndex = 0; lonIndex < kSubdivision;++lonIndex) {
-//			uint32_t start = (uint32_t)(latIndex * kSubdivision + lonIndex) * 6;
-//			float lon = lonIndex * kLonEvery;
-//
-//			//b
-//			vertexData[start].position.x = cosf(lat + kLonEvery) * cosf(lon);
-//			vertexData[start].position.y = sinf(lat + kLatEvery);
-//			vertexData[start].position.z = cosf(lat + kLatEvery) * sinf(lon);
-//			vertexData[start].position.w = 1;
-//			vertexData[start].texcoord = { 0.0f,0.0f };
-//
-//
-//			//d
-//			vertexData[start + 1].position.x = cosf(lat + kLonEvery) * cosf(lon + kLonEvery);
-//			vertexData[start + 1].position.y = sinf(lat + kLatEvery);
-//			vertexData[start + 1].position.z = cosf(lat + kLatEvery) * sinf(lon + kLonEvery);
-//			vertexData[start + 1].position.w = 1;
-//			vertexData[start + 1].texcoord = { 1.0f,0.0f };
-//
-//
-//			//c
-//			vertexData[start + 2].position.x = cosf(lat) * cosf(lon + kLonEvery);
-//			vertexData[start + 2].position.y = sinf(lat);
-//			vertexData[start + 2].position.z = cosf(lat) * sinf(lon + kLonEvery);
-//			vertexData[start + 2].position.w = 1;
-//			vertexData[start + 2].texcoord = { 1.0f,1.0f };
-//
-//			
-//			//b
-//			vertexData[start+3].position.x = cosf(lat + kLonEvery) * cosf(lon);
-//			vertexData[start+3].position.y = sinf(lat + kLatEvery);
-//			vertexData[start+3].position.z = cosf(lat + kLatEvery) * sinf(lon);
-//			vertexData[start+3].position.w = 1;
-//			vertexData[start+3].texcoord = { 0.0f,0.0f };
-//
-//			//a
-//			vertexData[start+4].position.x = cosf(lat) * cosf(lon);
-//			vertexData[start+4].position.y = sinf(lat);
-//			vertexData[start+4].position.z = cosf(lat) * sinf(lon);
-//			vertexData[start+4].position.w = 1;
-//			vertexData[start+4].texcoord = { 0.0f,1.0f };
-//
-//
-//			//c
-//			vertexData[start+5].position.x = cosf(lat) * cosf(lon + kLonEvery);
-//			vertexData[start+5].position.y = sinf(lat);
-//			vertexData[start+5].position.z = cosf(lat) * sinf(lon + kLonEvery);
-//			vertexData[start+5].position.w = 1;
-//			vertexData[start+5].texcoord = { 1.0f,1.0f };
-//			commandList.DrawInstanced(6, 1, 0, 0);
-//
-//		}	
-//		
-//
-//	}
-//}
 
-//D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-//	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-//	handleCPU.ptr += (descriptorSize * index);
-//	return handleCPU;
-//}
-
-//D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-//	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
-//	handleGPU.ptr += (descriptorSize * index);
-//	return handleGPU;
-//}
 
 ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename)
 {
