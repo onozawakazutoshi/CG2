@@ -55,12 +55,7 @@ public:
 
 	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
-	Microsoft::WRL::ComPtr < IDxcBlob> GetvertexShaderBlob() {
-		return vertexShaderBlob;
-	}
-	Microsoft::WRL::ComPtr < IDxcBlob> GetpixelShaderBlob() {
-		return pixelShaderBlob;
-	}
+	\
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetcommandList() {
 		return commandList;
 	}
@@ -101,15 +96,8 @@ public:
 	Microsoft::WRL::ComPtr <ID3D12Resource> GettextureResource() {
 		return textureResource;
 	}
-	Microsoft::WRL::ComPtr <ID3D12Resource> GettextureResource2() {
-		return textureResource2;
-	}
-	D3D12_GPU_DESCRIPTOR_HANDLE GettextureSrvHandleGPU2() {
-		return textureSrvHandleGPU2;
-	}
-	D3D12_GPU_DESCRIPTOR_HANDLE GettextureSrvHandleGPU() {
-		return textureSrvHandleGPU;
-	}
+	
+	
 	Microsoft::WRL::ComPtr < ID3D12Fence> Getfence() {
 		return fence;
 	}
@@ -126,6 +114,25 @@ public:
 
 	HRESULT Gethr() {
 		return hr;
+	}
+	uint32_t GetdesriptorSizeSRV() {
+		return desriptorSizeSRV;
+	}
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+		D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		handleCPU.ptr += (descriptorSize * index);
+		return handleCPU;
+	}
+
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
+	Microsoft::WRL::ComPtr <IDxcIncludeHandler> GetincludeHandler() {
+		return includeHandler;
+	}
+	Microsoft::WRL::ComPtr <IDxcUtils>GetdxcUtils() {
+		return dxcUtils;
+	}
+	Microsoft::WRL::ComPtr <IDxcCompiler3> GetdxcCompiler() {
+		return dxcCompiler;
 	}
 
 	Microsoft::WRL::ComPtr < ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes);
@@ -149,13 +156,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList = nullptr;
 	WinApp* winapp;
 	HRESULT hr;
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-		D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-		handleCPU.ptr += (descriptorSize * index);
-		return handleCPU;
-	}
-	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
-
+	
 	Microsoft::WRL::ComPtr < ID3D12Resource> swapChainResources[2] = { nullptr };
 	Microsoft::WRL::ComPtr < ID3D12Resource> depthStencilResource;
 	Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> rtvDescriptorHeap;
@@ -168,15 +169,7 @@ private:
 
 	Microsoft::WRL::ComPtr < ID3D12DescriptorHeap>dsvDescriptorHeap;
 	
-	DirectX::ScratchImage mipImage2 = LoadTexture("./resources/monsterBall.png");
-	const DirectX::TexMetadata& metadata2 = mipImage2.GetMetadata();
-	Microsoft::WRL::ComPtr <ID3D12Resource> textureResource2;
-	Microsoft::WRL::ComPtr <IDxcUtils>dxcUtils = nullptr;
-	Microsoft::WRL::ComPtr <IDxcCompiler3> dxcCompiler = nullptr;
 	Microsoft::WRL::ComPtr <IDxcIncludeHandler> includeHandler = nullptr;
-	Microsoft::WRL::ComPtr < IDxcBlob> vertexShaderBlob ;
-
-	Microsoft::WRL::ComPtr < IDxcBlob> pixelShaderBlob;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle;
 
@@ -185,25 +178,27 @@ private:
 
 	D3D12_RECT scissorRect{};
 
+	Microsoft::WRL::ComPtr <IDxcUtils>dxcUtils = nullptr;
+	Microsoft::WRL::ComPtr <IDxcCompiler3> dxcCompiler = nullptr;
+
 	Microsoft::WRL::ComPtr <ID3D12Resource> textureResource;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2; 
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2;
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU;
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU;
+	
 
 	Microsoft::WRL::ComPtr < ID3D12Fence> fence = nullptr;
 	uint64_t fenceValue = 0;
 	HANDLE fenceEvent;
 
-	Logger* log;
+
 	Input* input;
 	
 
 	D3D12_RESOURCE_BARRIER barrier{};
 	UINT backBufferIndex = NULL;
 
-	Logger* Log = new Logger;
+	 uint32_t desriptorSizeSRV =NULL;
+	 uint32_t desriptorSizeRTV = NULL;
+	 uint32_t desriptorSizeDSV = NULL;
 	
 };
 

@@ -1,9 +1,9 @@
 #pragma once
 #include<string>
 
-class Logger
+namespace Logger
 {
-public:
+
 	void Log(const std::string& message);
 };
 

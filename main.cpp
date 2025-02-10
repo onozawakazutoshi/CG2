@@ -130,7 +130,6 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 
 DirectXCommon* dxCommon = nullptr;
-Logger* Log = new Logger;
 
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -151,19 +150,73 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 #endif // _DEBUG
 	//出力ウィンドウの文字出力
-	Log->Log("Hello,DirectX\n");
+	Logger::Log("Hello,DirectX\n");
 	
 	
 
 	dxCommon = new DirectXCommon;
 	dxCommon->Initialize(winapp);
-	Log->Log("Complete create D3D12Device!!!\n");
+	Logger::Log("Complete create D3D12Device!!!\n");
 
 	HRESULT hr = dxCommon->Gethr();
 
+	DirectX::ScratchImage mipImage2 = dxCommon->LoadTexture("./resources/monsterBall.png");
+	const DirectX::TexMetadata& metadata2 = mipImage2.GetMetadata();
+	Microsoft::WRL::ComPtr <ID3D12Resource> textureResource2;
 	
+	
+	Microsoft::WRL::ComPtr < IDxcBlob> vertexShaderBlob;
+	vertexShaderBlob = dxCommon->CompileShader(L"Shader/Object3D.VS.hlsl", L"vs_6_0", dxCommon->GetdxcUtils(), dxCommon->GetdxcCompiler(), dxCommon->GetincludeHandler());
+	Microsoft::WRL::ComPtr < IDxcBlob> pixelShaderBlob;
+	pixelShaderBlob = dxCommon->CompileShader(L"Shader/Object3D.PS.hlsl", L"ps_6_0", dxCommon->GetdxcUtils(), dxCommon->GetdxcCompiler(), dxCommon->GetincludeHandler());
+
+	assert(vertexShaderBlob != nullptr);
+
+	assert(pixelShaderBlob != nullptr);
+
 
 	Microsoft::WRL::ComPtr < ID3D12Resource> VertexResourceSprite = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(VertexData) * 6);
+
+
+	textureResource2 = dxCommon->CreateTextureResource(dxCommon->Getdevice(), metadata2);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2;
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2;
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU;
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU;
+
+	textureSrvHandleCPU2 = dxCommon->GetCPUDescriptorHandle(dxCommon->GetsrvDescriptorHeap().Get(), dxCommon->GetdesriptorSizeSRV(), 2);
+	textureSrvHandleGPU2 = dxCommon->GetGPUDescriptorHandle(dxCommon->GetsrvDescriptorHeap().Get(), dxCommon->GetdesriptorSizeSRV(), 2);
+	textureSrvHandleCPU = dxCommon->GetsrvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	textureSrvHandleGPU = dxCommon->GetsrvDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
+
+	textureSrvHandleCPU.ptr += dxCommon->Getdevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU.ptr += dxCommon->Getdevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	Microsoft::WRL::ComPtr <ID3D12Resource> textureResource;
+
+	DirectX::ScratchImage mipImages = dxCommon->LoadTexture("resources/uvChecker.png");
+	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
+	textureResource = dxCommon->CreateTextureResource(dxCommon->Getdevice(), metadata);
+
+	dxCommon->UploadTextureData(textureResource.Get(), mipImages);
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = metadata.format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
+
+	dxCommon->Getdevice()->CreateShaderResourceView(dxCommon->GettextureResource().Get(), &srvDesc, textureSrvHandleCPU);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc2{};
+	srvDesc2.Format = metadata2.format;
+	srvDesc2.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc2.Texture2D.MipLevels = UINT(metadata2.mipLevels);
+
+	dxCommon->Getdevice()->CreateShaderResourceView(textureResource2.Get(), &srvDesc2, textureSrvHandleCPU2);
+
+	dxCommon->UploadTextureData(textureResource2.Get(), mipImage2);
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
 
@@ -210,6 +263,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	indexBufferViewSprite.SizeInBytes = sizeof(uint32_t) * 6;
 
 	indexBufferViewSprite.Format = DXGI_FORMAT_R32_UINT;
+
+
 
 	uint32_t* indexDataSprite = nullptr;
 	indexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite));
@@ -284,7 +339,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 	if (FAILED(hr)) {
-		Log->Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		Logger::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
 
@@ -332,13 +387,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	graphicsPipelineStateDesc.BlendState = blendDesc;
 
 	graphicsPipelineStateDesc.VS = {
-		dxCommon->GetvertexShaderBlob()->GetBufferPointer(),
-		dxCommon->GetvertexShaderBlob()->GetBufferSize()
+		vertexShaderBlob->GetBufferPointer(),
+		vertexShaderBlob->GetBufferSize()
 	};
 	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
 	graphicsPipelineStateDesc.PS = {
-		dxCommon->GetpixelShaderBlob()->GetBufferPointer(),
-		dxCommon->GetpixelShaderBlob()->GetBufferSize()
+		pixelShaderBlob->GetBufferPointer(),
+		pixelShaderBlob->GetBufferSize()
 	};
 
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
@@ -521,9 +576,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	}
 
-	const uint32_t desriptorSizeSRV = dxCommon->Getdevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	/*const uint32_t desriptorSizeSRV = dxCommon->Getdevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	const uint32_t desriptorSizeRTV = dxCommon->Getdevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	const uint32_t desriptorSizeDSV = dxCommon->Getdevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	const uint32_t desriptorSizeDSV = dxCommon->Getdevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);*/
 
 	
 
@@ -608,7 +663,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			UINT backBufferIndex = dxCommon->GetswapChain()->GetCurrentBackBufferIndex();
 			dxCommon->GetcommandList()->OMSetRenderTargets(1, &dxCommon->GetrtvHandles(backBufferIndex), false, nullptr);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon->GetdsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+                                                                                                                             			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon->GetdsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 			dxCommon->GetcommandList()->OMSetRenderTargets(1, &dxCommon->GetrtvHandles(backBufferIndex), false, &dsvHandle);
 
 			//input->Updat();
@@ -642,7 +697,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 			dxCommon->GetcommandList()->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
-			dxCommon->GetcommandList()->SetGraphicsRootDescriptorTable(2, useMonsterBall ? dxCommon->GettextureSrvHandleGPU2() : dxCommon->GettextureSrvHandleGPU());
+			dxCommon->GetcommandList()->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 			//commandList->DrawInstanced(latIndex * lonIndex * 6, 1, 0, 0);
 			dxCommon->GetcommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 
@@ -650,7 +705,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			dxCommon->GetcommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 
 			dxCommon->GetcommandList()->SetGraphicsRootConstantBufferView(0, materialSpriteResourceSprite->GetGPUVirtualAddress());
-			dxCommon->GetcommandList()->SetGraphicsRootDescriptorTable(2, dxCommon->GettextureSrvHandleGPU());
+			dxCommon->GetcommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			dxCommon->GetcommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 			//commandList->DrawInstanced(6, 1, 0, 0);
 			dxCommon->GetcommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
