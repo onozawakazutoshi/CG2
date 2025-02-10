@@ -15,6 +15,8 @@
 class DirectXCommon
 {
 public:
+	DirectXCommon();
+	~DirectXCommon();
 	void Initialize(WinApp* winapp,HRESULT hr, Microsoft::WRL::ComPtr<ID3D12Device> device, Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory);
 	void ComInitialize();
 	void SwapChainInitialize();
@@ -128,7 +130,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList = nullptr;
-	WinApp* winapp = new WinApp;
+	WinApp* winapp;
 	HRESULT hr;
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
 		D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -177,8 +179,8 @@ private:
 	uint64_t fenceValue = 0;
 	HANDLE fenceEvent;
 
-	Logger* log = new Logger;
-	Input* input = new Input();
+	Logger* log;
+	Input* input;
 	
 
 	D3D12_RESOURCE_BARRIER barrier{};

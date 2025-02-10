@@ -7,6 +7,13 @@
 
 
 using namespace Microsoft::WRL;
+DirectXCommon::DirectXCommon()
+{
+}
+DirectXCommon::~DirectXCommon()
+{
+	delete input;
+}
 void DirectXCommon::Initialize(WinApp* winapp_, HRESULT hr, Microsoft::WRL::ComPtr<ID3D12Device> device, Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory)
 {
 	this->dxgiFactory = dxgiFactory;
@@ -30,7 +37,7 @@ void DirectXCommon::Initialize(WinApp* winapp_, HRESULT hr, Microsoft::WRL::ComP
 	Viewport();//ビューポート
 	Scissor();//シザリング
 	DXCcom();//DXC
-	
+	input = new Input;
 	input->Initialize(winapp);
 
 	ImGuiInitialize();//ImGuiの初期化

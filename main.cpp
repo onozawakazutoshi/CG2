@@ -721,8 +721,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			dxCommon->PostDraw();
 		}
 	}
+
+
 	winapp->Finalize();
-	delete input;
 
 
 #ifdef _DEBUG
@@ -731,6 +732,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	CloseWindow(winapp->hwnd_);
 
 	CoUninitialize();
+	delete dxCommon;
 	return 0;
 }
 
