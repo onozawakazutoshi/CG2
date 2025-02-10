@@ -179,6 +179,6 @@ private:
 	
 
 	D3D12_RESOURCE_BARRIER barrier{};
-	UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
+	UINT backBufferIndex = NULL;
 };
 
