@@ -41,14 +41,14 @@
 //std::wstring (const std::string& str);
 //std::string ConvertString(const std::wstring& str);
 
-Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
-	const std::wstring& filePath,
-	const wchar_t* profile,
-	Microsoft::WRL::ComPtr < IDxcUtils> dxccUtils,
-	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
-	Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
-);
-Microsoft::WRL::ComPtr <ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes);
+//Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
+//	const std::wstring& filePath,
+//	const wchar_t* profile,
+//	Microsoft::WRL::ComPtr < IDxcUtils> dxccUtils,
+//	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
+//	Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
+//);
+//Microsoft::WRL::ComPtr <ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 
@@ -251,7 +251,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #endif // _DEBUG
 	//dxCommon->ComInitialize();
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> VertexResourceSprite = CreateBufferResource(device.Get(), sizeof(VertexData) * 6);
+	Microsoft::WRL::ComPtr < ID3D12Resource> VertexResourceSprite = dxCommon->CreateBufferResource(device.Get(), sizeof(VertexData) * 6);
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
 
@@ -284,12 +284,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//vertexDataSprite[5].texcoord = { 1.0f,1.0f };
 	///vertexDataSprite[5].normal = { 0.0f,0.0f,-1.0f };
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> transformationMatrixResourceSprite = CreateBufferResource(device.Get(), sizeof(TransformationMatrix));
+	Microsoft::WRL::ComPtr < ID3D12Resource> transformationMatrixResourceSprite = dxCommon->CreateBufferResource(device.Get(), sizeof(TransformationMatrix));
 	TransformationMatrix* transformationMatrixDataSprite = nullptr;
 	transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
 	transformationMatrixDataSprite->World = MakeIdenty4x4();
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> indexResourceSprite = CreateBufferResource(device.Get(), sizeof(uint32_t) * 6);
+	Microsoft::WRL::ComPtr < ID3D12Resource> indexResourceSprite = dxCommon->CreateBufferResource(device.Get(), sizeof(uint32_t) * 6);
 
 	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite{};
 
@@ -354,7 +354,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	descriptionRootSignature.pStaticSamplers = staticSamplers;
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> wvpResource = CreateBufferResource(device.Get(), sizeof(TransformationMatrix));
+	Microsoft::WRL::ComPtr < ID3D12Resource> wvpResource = dxCommon->CreateBufferResource(device.Get(), sizeof(TransformationMatrix));
 
 	TransformationMatrix* wvpData = nullptr;
 	wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
@@ -450,7 +450,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int latIndex = kSubdivision;
 	int lonIndex = kSubdivision;
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource = CreateBufferResource(device.Get(), sizeof(VertexData) * (kSubdivision * kSubdivision * 6));
+	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource = dxCommon->CreateBufferResource(device.Get(), sizeof(VertexData) * (kSubdivision * kSubdivision * 6));
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
@@ -458,7 +458,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> materialResourceSprite = CreateBufferResource(device.Get(), sizeof(Material));
+	Microsoft::WRL::ComPtr < ID3D12Resource> materialResourceSprite = dxCommon->CreateBufferResource(device.Get(), sizeof(Material));
 
 
 	Material* materialData = nullptr;
@@ -472,7 +472,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	materialData->uvTransform = MakeIdenty4x4();
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> materialSpriteResourceSprite = CreateBufferResource(device.Get(), sizeof(Material));
+	Microsoft::WRL::ComPtr < ID3D12Resource> materialSpriteResourceSprite = dxCommon->CreateBufferResource(device.Get(), sizeof(Material));
 
 	Material* materialDataSprite = nullptr;
 
@@ -496,7 +496,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	ModelData modelData = LoadObjFile("resources", "axis.obj");
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource2 = CreateBufferResource(device.Get(), sizeof(VertexData) * modelData.vertices.size());
+	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource2 = dxCommon->CreateBufferResource(device.Get(), sizeof(VertexData) * modelData.vertices.size());
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView2{};
 	vertexBufferView2.BufferLocation = vertexResource2->GetGPUVirtualAddress();
@@ -617,7 +617,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-30.0f} };
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> directionalLightDataResource = CreateBufferResource(device.Get(), sizeof(DirectionalLight));
+	Microsoft::WRL::ComPtr < ID3D12Resource> directionalLightDataResource = dxCommon->CreateBufferResource(device.Get(), sizeof(DirectionalLight));
 	DirectionalLight* directionalLightData = nullptr;
 	directionalLightDataResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
 	directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f };
@@ -817,86 +817,86 @@ Matrix4x4 MakeIdenty4x4()
 	}
 	return ans;
 }
-Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
-	const std::wstring& filePath,
-	const wchar_t* profile,
-	Microsoft::WRL::ComPtr < IDxcUtils> dxccUtils,
-	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
-	Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
-) {
-	Log->Log(StringUtility::ConvertString(std::format(L"Begin CompileShader, path:{},profile:{}\n", filePath, profile)));
+//Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
+//	const std::wstring& filePath,
+//	const wchar_t* profile,
+//	Microsoft::WRL::ComPtr < IDxcUtils> dxccUtils,
+//	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
+//	Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
+//) {
+//	Log->Log(StringUtility::ConvertString(std::format(L"Begin CompileShader, path:{},profile:{}\n", filePath, profile)));
+//
+//	Microsoft::WRL::ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
+//
+//	HRESULT hr = dxccUtils->LoadFile(filePath.c_str(), nullptr, &shaderSource);
+//
+//	assert(SUCCEEDED(hr));
+//
+//	DxcBuffer shaderSourceBuffer;
+//	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
+//	shaderSourceBuffer.Size = shaderSource->GetBufferSize();
+//	shaderSourceBuffer.Encoding = DXC_CP_UTF8;
+//
+//	LPCWSTR arguments[] = {
+//		filePath.c_str(),
+//		L"-E",L"main",
+//		L"-T",profile,
+//		L"-Zi",L"-Qembed_debug",
+//		L"-Od",
+//		L"-Zpr",
+//	};
+//
+//	Microsoft::WRL::ComPtr <IDxcResult> shaderResult = nullptr;
+//	hr = dxcCompiler->Compile(
+//		&shaderSourceBuffer,
+//		arguments,
+//		_countof(arguments),
+//		includeHandler.Get(),
+//		IID_PPV_ARGS(&shaderResult)
+//	);
+//	assert(SUCCEEDED(hr));
+//
+//	Microsoft::WRL::ComPtr < IDxcBlobUtf8> shaderError = nullptr;
+//	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
+//	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
+//		Log->Log(shaderError->GetStringPointer());
+//		assert(false);
+//	}
+//
+//	Microsoft::WRL::ComPtr < IDxcBlob> shaderBlob = nullptr;
+//	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
+//	assert(SUCCEEDED(hr));
+//
+//	Log->Log(StringUtility::ConvertString(std::format(L"Compile Succeeded,path:{},profile:{}\n", filePath, profile)));
+//
+//	//shaderSource->Release();
+//	//shaderResult->Release();
+//
+//	return shaderBlob;
+//}
 
-	Microsoft::WRL::ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
-
-	HRESULT hr = dxccUtils->LoadFile(filePath.c_str(), nullptr, &shaderSource);
-
-	assert(SUCCEEDED(hr));
-
-	DxcBuffer shaderSourceBuffer;
-	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
-	shaderSourceBuffer.Size = shaderSource->GetBufferSize();
-	shaderSourceBuffer.Encoding = DXC_CP_UTF8;
-
-	LPCWSTR arguments[] = {
-		filePath.c_str(),
-		L"-E",L"main",
-		L"-T",profile,
-		L"-Zi",L"-Qembed_debug",
-		L"-Od",
-		L"-Zpr",
-	};
-
-	Microsoft::WRL::ComPtr <IDxcResult> shaderResult = nullptr;
-	hr = dxcCompiler->Compile(
-		&shaderSourceBuffer,
-		arguments,
-		_countof(arguments),
-		includeHandler.Get(),
-		IID_PPV_ARGS(&shaderResult)
-	);
-	assert(SUCCEEDED(hr));
-
-	Microsoft::WRL::ComPtr < IDxcBlobUtf8> shaderError = nullptr;
-	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
-	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
-		Log->Log(shaderError->GetStringPointer());
-		assert(false);
-	}
-
-	Microsoft::WRL::ComPtr < IDxcBlob> shaderBlob = nullptr;
-	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
-	assert(SUCCEEDED(hr));
-
-	Log->Log(StringUtility::ConvertString(std::format(L"Compile Succeeded,path:{},profile:{}\n", filePath, profile)));
-
-	//shaderSource->Release();
-	//shaderResult->Release();
-
-	return shaderBlob;
-}
-
-Microsoft::WRL::ComPtr < ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes)
-{
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	D3D12_RESOURCE_DESC vertexResourceDesc{};
-	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	vertexResourceDesc.Width = sizeInBytes;
-
-	vertexResourceDesc.Height = 1;
-	vertexResourceDesc.DepthOrArraySize = 1;
-	vertexResourceDesc.MipLevels = 1;
-	vertexResourceDesc.SampleDesc.Count = 1;
-
-	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	Microsoft::WRL::ComPtr <ID3D12Resource> vertexResource;
-	device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
-		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
-
-	return vertexResource;
-}
+//Microsoft::WRL::ComPtr < ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes)
+//{
+//	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
+//	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
+//
+//	D3D12_RESOURCE_DESC vertexResourceDesc{};
+//	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+//	vertexResourceDesc.Width = sizeInBytes;
+//
+//	vertexResourceDesc.Height = 1;
+//	vertexResourceDesc.DepthOrArraySize = 1;
+//	vertexResourceDesc.MipLevels = 1;
+//	vertexResourceDesc.SampleDesc.Count = 1;
+//
+//	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+//
+//	Microsoft::WRL::ComPtr <ID3D12Resource> vertexResource;
+//	device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+//		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
+//
+//	return vertexResource;
+//}
 
 Matrix4x4 MakeAffinMatrix(const Vector3& S, const Vector3& R, const Vector3& T) {
 	Matrix4x4 ans{ 0 };

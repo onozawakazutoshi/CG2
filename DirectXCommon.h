@@ -114,9 +114,12 @@ public:
 	HANDLE GetfenceEvent() {
 		return fenceEvent;
 	}
-
+	
+	Microsoft::WRL::ComPtr < ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes);
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, const DirectX::TexMetadata& metadata);
 	void UploadTextureData(Microsoft::WRL::ComPtr < ID3D12Resource> texture, const DirectX::ScratchImage& mipImages);
+
+
 private:
 
 	Microsoft::WRL::ComPtr<ID3D12Device> device = nullptr;
@@ -180,5 +183,7 @@ private:
 
 	D3D12_RESOURCE_BARRIER barrier{};
 	UINT backBufferIndex = NULL;
+
+	
 };
 
