@@ -190,7 +190,7 @@ private:
 	HANDLE fenceEvent;
 
 
-	Input* input;
+	//Input* input;
 	
 
 	D3D12_RESOURCE_BARRIER barrier{};

@@ -18,7 +18,7 @@ DirectXCommon::DirectXCommon()
 DirectXCommon::~DirectXCommon()
 {
 	
-	delete input;
+	//delete input;
 }
 void DirectXCommon::Initialize(WinApp* winapp_)
 {
@@ -43,8 +43,8 @@ void DirectXCommon::Initialize(WinApp* winapp_)
 	Viewport();//ビューポート
 	Scissor();//シザリング
 	DXCcom();//DXC
-	input = new Input;
-	input->Initialize(winapp);
+	//input = new Input;
+	//input->Initialize(winapp);
 
 	ImGuiInitialize();//ImGuiの初期化
 }
@@ -447,7 +447,7 @@ void DirectXCommon::PreDraw()
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
 
-	input->Updat();
+	//input->Updat();
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
