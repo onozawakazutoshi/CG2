@@ -724,10 +724,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #endif
 	
 	
+	dxCommon->~DirectXCommon();
 	
-	ImGui_ImplDX12_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
 	delete dxCommon;
 	
 	winapp->Finalize();

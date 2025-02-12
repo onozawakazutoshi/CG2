@@ -17,7 +17,15 @@ DirectXCommon::DirectXCommon()
 }
 DirectXCommon::~DirectXCommon()
 {
-	
+	fenceValue++;
+	if (Getfence()->GetCompletedValue() < fenceValue) {
+		Getfence()->SetEventOnCompletion(fenceValue, GetfenceEvent());
+		WaitForSingleObject(GetfenceEvent(), INFINITE);
+	}
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 	//delete input;
 }
 void DirectXCommon::Initialize(WinApp* winapp_)
@@ -45,12 +53,20 @@ void DirectXCommon::Initialize(WinApp* winapp_)
 	DXCcom();//DXC
 	//input = new Input;
 	//input->Initialize(winapp);
-
+	//
 	ImGuiInitialize();//ImGuiの初期化
 }
 
 void DirectXCommon::ComInitialize()
 {
+#ifdef _DEBUG
+	Microsoft::WRL::ComPtr <ID3D12Debug1> debufController = nullptr;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debufController)))) {
+		debufController->EnableDebugLayer();
+		debufController->SetEnableGPUBasedValidation(TRUE);
+	}
+#endif // _DEBUG
+
 	dxgiFactory = nullptr;
 
 	hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory));
@@ -490,12 +506,9 @@ void DirectXCommon::PostDraw()
 	GetcommandQueue()->ExecuteCommandLists(1, commandLists);
 	GetswapChain()->Present(1, 0);
 
-	fenceValue++;
+	
 	GetcommandQueue()->Signal(Getfence().Get(), fenceValue);
-	if (Getfence()->GetCompletedValue() < fenceValue) {
-		Getfence()->SetEventOnCompletion(fenceValue, GetfenceEvent());
-		WaitForSingleObject(GetfenceEvent(), INFINITE);
-	}
+	
 
 	UpdateFixFPS();
 

@@ -5,6 +5,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 void WinApp::Initialize()
 {
+	CoInitializeEx(0, COINIT_MULTITHREADED);
 
 	wc.lpfnWndProc = WindowProc;
 	//ウィンドウクラス名（何でもよい）
