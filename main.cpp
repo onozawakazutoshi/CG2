@@ -1,4 +1,5 @@
 #include "Input.h"
+#include "Enemy.h"
 #include "WinApp.h"
 #include "DirectXCommon.h"
 #include "Logger.h"
@@ -35,6 +36,8 @@
 #include "externals/imgui/imgui_impl_dx12.h"
 #include "externals/imgui/imgui_impl_win32.h"
 
+
+#include <stdio.h>
 
 #include "externals/DirectXTex/DirectXTex.h"
 
@@ -548,6 +551,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	input = new Input();
 	input->Initialize(winapp);*/
 
+	Enemy* enemy = new Enemy;
+
 	MSG msg{};
 	while (msg.message != WM_QUIT) {
 		
@@ -555,7 +560,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		}
 		else {
-
+			enemy->Atack();
+			enemy->Move();
+			enemy->Remove();
 			//transform.rotate.y += 0.03f;
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
@@ -578,6 +585,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::DragFloat2("rotate", &transform.rotate.x, 0.01f, -10.0f, 10.0f);
 			ImGui::DragFloat2("scale", &transform.scale.x, 0.01f, -10.0f, 10.0f);
 			ImGui::DragFloat3("translate", &transform.translate.x, 0.01f, -10.0f, 10.0f);
+
+			if(enemy->GetAtack())
 
 			ImGui::End();
 
@@ -622,7 +631,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-
+			
 
 			dxCommon->PreDraw();
 
@@ -656,6 +665,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			dxCommon->GetcommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetcommandList().Get());
+			
+			
 
 			dxCommon->PostDraw();
 		}
@@ -1089,5 +1100,6 @@ MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const st
 	}
 	return materialData;
 }
+
 
 

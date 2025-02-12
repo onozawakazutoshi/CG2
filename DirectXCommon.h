@@ -60,6 +60,7 @@ public:
 	}
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetcommandList() {
 		return commandList;
+
 	}
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetcommandQueue() {
 		return commandQueue;
