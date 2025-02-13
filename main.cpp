@@ -655,7 +655,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			UINT backBufferIndex = dxCommon->GetswapChain()->GetCurrentBackBufferIndex();
 			dxCommon->GetcommandList()->OMSetRenderTargets(1, &dxCommon->GetrtvHandles(backBufferIndex), false, nullptr);
 
-                                                                                                                             			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon->GetdsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+            D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon->GetdsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 			dxCommon->GetcommandList()->OMSetRenderTargets(1, &dxCommon->GetrtvHandles(backBufferIndex), false, &dsvHandle);
 
 			//input->Updat();
@@ -716,7 +716,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #endif
 	
 	
-	dxCommon->~DirectXCommon();
+	
 	
 	delete dxCommon;
 	

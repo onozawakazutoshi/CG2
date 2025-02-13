@@ -17,14 +17,15 @@ DirectXCommon::DirectXCommon()
 }
 DirectXCommon::~DirectXCommon()
 {
-	fenceValue++;
 	if (Getfence()->GetCompletedValue() < fenceValue) {
 		Getfence()->SetEventOnCompletion(fenceValue, GetfenceEvent());
 		WaitForSingleObject(GetfenceEvent(), INFINITE);
 	}
+
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+	
 
 	//delete input;
 }
@@ -253,7 +254,7 @@ void DirectXCommon::DescriptorHeap()
 	desriptorSizeRTV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	desriptorSizeDSV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-	GetCPUDescriptorHandle(0);
+	
 	srvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
 
 	
@@ -506,8 +507,10 @@ void DirectXCommon::PostDraw()
 	GetcommandQueue()->ExecuteCommandLists(1, commandLists);
 	GetswapChain()->Present(1, 0);
 
-	
+	fenceValue++;
 	GetcommandQueue()->Signal(Getfence().Get(), fenceValue);
+	
+	
 	
 
 	UpdateFixFPS();
