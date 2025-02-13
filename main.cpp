@@ -141,14 +141,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	WinApp* winapp = new WinApp;
 	winapp->Initialize();
 
-	
-#ifdef _DEBUG
-	Microsoft::WRL::ComPtr <ID3D12Debug1> debufController = nullptr;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debufController)))) {
-		debufController->EnableDebugLayer();
-		debufController->SetEnableGPUBasedValidation(TRUE);
-	}
-#endif // _DEBUG
 	//出力ウィンドウの文字出力
 	Logger::Log("Hello,DirectX\n");
 	
@@ -166,27 +158,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	
 	
 	Microsoft::WRL::ComPtr < IDxcBlob> vertexShaderBlob;
-	vertexShaderBlob = dxCommon->CompileShader(L"Shader/Object3D.VS.hlsl", L"vs_6_0", dxCommon->GetdxcUtils(), dxCommon->GetdxcCompiler(), dxCommon->GetincludeHandler());
+	vertexShaderBlob = dxCommon->CompileShader(L"Shader/Object3D.VS.hlsl", L"vs_6_0");
 	Microsoft::WRL::ComPtr < IDxcBlob> pixelShaderBlob;
-	pixelShaderBlob = dxCommon->CompileShader(L"Shader/Object3D.PS.hlsl", L"ps_6_0", dxCommon->GetdxcUtils(), dxCommon->GetdxcCompiler(), dxCommon->GetincludeHandler());
+	pixelShaderBlob = dxCommon->CompileShader(L"Shader/Object3D.PS.hlsl", L"ps_6_0");
 
 	assert(vertexShaderBlob != nullptr);
 
 	assert(pixelShaderBlob != nullptr);
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> VertexResourceSprite = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(VertexData) * 6);
+	Microsoft::WRL::ComPtr < ID3D12Resource> VertexResourceSprite = dxCommon->CreateBufferResource(sizeof(VertexData) * 6);
 
 
-	textureResource2 = dxCommon->CreateTextureResource(dxCommon->Getdevice(), metadata2);
+	textureResource2 = dxCommon->CreateTextureResource( metadata2);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2;
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU;
 
-	textureSrvHandleCPU2 = dxCommon->GetCPUDescriptorHandle(dxCommon->GetsrvDescriptorHeap().Get(), dxCommon->GetdesriptorSizeSRV(), 2);
-	textureSrvHandleGPU2 = dxCommon->GetGPUDescriptorHandle(dxCommon->GetsrvDescriptorHeap().Get(), dxCommon->GetdesriptorSizeSRV(), 2);
+	textureSrvHandleCPU2 = dxCommon->GetCPUDescriptorHandle( 2);
+	textureSrvHandleGPU2 = dxCommon->GetGPUDescriptorHandle( 2);
 	textureSrvHandleCPU = dxCommon->GetsrvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 	textureSrvHandleGPU = dxCommon->GetsrvDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
 
@@ -197,7 +189,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	DirectX::ScratchImage mipImages = dxCommon->LoadTexture("resources/uvChecker.png");
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
-	textureResource = dxCommon->CreateTextureResource(dxCommon->Getdevice(), metadata);
+	textureResource = dxCommon->CreateTextureResource( metadata);
 
 	dxCommon->UploadTextureData(textureResource.Get(), mipImages);
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -249,12 +241,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//vertexDataSprite[5].texcoord = { 1.0f,1.0f };
 	///vertexDataSprite[5].normal = { 0.0f,0.0f,-1.0f };
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> transformationMatrixResourceSprite = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(TransformationMatrix));
+	Microsoft::WRL::ComPtr < ID3D12Resource> transformationMatrixResourceSprite = dxCommon->CreateBufferResource(sizeof(TransformationMatrix));
 	TransformationMatrix* transformationMatrixDataSprite = nullptr;
 	transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
 	transformationMatrixDataSprite->World = MakeIdenty4x4();
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> indexResourceSprite = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(uint32_t) * 6);
+	Microsoft::WRL::ComPtr < ID3D12Resource> indexResourceSprite = dxCommon->CreateBufferResource( sizeof(uint32_t) * 6);
 
 	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite{};
 
@@ -279,7 +271,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> depthStencilResource = dxCommon->CreateDepthStencilTextureResource(dxCommon->Getdevice(), winapp->kClientWidth, winapp->kClientHeight);
+	Microsoft::WRL::ComPtr < ID3D12Resource> depthStencilResource = dxCommon->CreateDepthStencilTextureResource(winapp->kClientWidth, winapp->kClientHeight);
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -321,7 +313,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	descriptionRootSignature.pStaticSamplers = staticSamplers;
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> wvpResource = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(TransformationMatrix));
+	Microsoft::WRL::ComPtr < ID3D12Resource> wvpResource = dxCommon->CreateBufferResource( sizeof(TransformationMatrix));
 
 	TransformationMatrix* wvpData = nullptr;
 	wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
@@ -417,7 +409,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int latIndex = kSubdivision;
 	int lonIndex = kSubdivision;
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(VertexData) * (kSubdivision * kSubdivision * 6));
+	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource = dxCommon->CreateBufferResource( sizeof(VertexData) * (kSubdivision * kSubdivision * 6));
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
@@ -425,7 +417,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> materialResourceSprite = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(Material));
+	Microsoft::WRL::ComPtr < ID3D12Resource> materialResourceSprite = dxCommon->CreateBufferResource(sizeof(Material));
 
 
 	Material* materialData = nullptr;
@@ -439,7 +431,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	materialData->uvTransform = MakeIdenty4x4();
 
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> materialSpriteResourceSprite = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(Material));
+	Microsoft::WRL::ComPtr < ID3D12Resource> materialSpriteResourceSprite = dxCommon->CreateBufferResource(sizeof(Material));
 
 	Material* materialDataSprite = nullptr;
 
@@ -463,7 +455,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	ModelData modelData = LoadObjFile("resources", "axis.obj");
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource2 = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(VertexData) * modelData.vertices.size());
+	Microsoft::WRL::ComPtr < ID3D12Resource> vertexResource2 = dxCommon->CreateBufferResource( sizeof(VertexData) * modelData.vertices.size());
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView2{};
 	vertexBufferView2.BufferLocation = vertexResource2->GetGPUVirtualAddress();
@@ -584,7 +576,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-30.0f} };
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> directionalLightDataResource = dxCommon->CreateBufferResource(dxCommon->Getdevice().Get(), sizeof(DirectionalLight));
+	Microsoft::WRL::ComPtr < ID3D12Resource> directionalLightDataResource = dxCommon->CreateBufferResource( sizeof(DirectionalLight));
 	DirectionalLight* directionalLightData = nullptr;
 	directionalLightDataResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
 	directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f };

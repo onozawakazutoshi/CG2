@@ -22,17 +22,14 @@ public:
 	void ComInitialize();
 	void SwapChainInitialize();
 	void depthStencil();
-	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height);
-	Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr <ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(int32_t width, int32_t height);
+	Microsoft::WRL::ComPtr <ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
 	void DescriptorHeap();
 
 	Microsoft::WRL::ComPtr < IDxcBlob> CompileShader(
 		const std::wstring& filePath,
-		const wchar_t* profile,
-		Microsoft::WRL::ComPtr < IDxcUtils> dxccUtils,
-		Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler,
-		Microsoft::WRL::ComPtr < IDxcIncludeHandler> includeHandler
+		const wchar_t* profile
 	);
 	void RenderViwe();
 
@@ -55,7 +52,7 @@ public:
 
 	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
-	\
+	
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetcommandList() {
 		return commandList;
 	}
@@ -118,13 +115,9 @@ public:
 	uint32_t GetdesriptorSizeSRV() {
 		return desriptorSizeSRV;
 	}
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-		D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-		handleCPU.ptr += (descriptorSize * index);
-		return handleCPU;
-	}
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(uint32_t index);
 
-	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr < ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(uint32_t index);
 	Microsoft::WRL::ComPtr <IDxcIncludeHandler> GetincludeHandler() {
 		return includeHandler;
 	}
@@ -135,8 +128,8 @@ public:
 		return dxcCompiler;
 	}
 
-	Microsoft::WRL::ComPtr < ID3D12Resource> CreateBufferResource(Microsoft::WRL::ComPtr <ID3D12Device> device, size_t sizeInBytes);
-	Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, const DirectX::TexMetadata& metadata);
+	Microsoft::WRL::ComPtr < ID3D12Resource> CreateBufferResource(size_t sizeInBytes);
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(const DirectX::TexMetadata& metadata);
 	void UploadTextureData(Microsoft::WRL::ComPtr < ID3D12Resource> texture, const DirectX::ScratchImage& mipImages);
 
 

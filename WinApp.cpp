@@ -77,6 +77,13 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 		PostQuitMessage(0);
 		return 0;
 	}
+	#ifdef _DEBUG
+	Microsoft::WRL::ComPtr <ID3D12Debug1> debufController = nullptr;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debufController)))) {
+		debufController->EnableDebugLayer();
+		debufController->SetEnableGPUBasedValidation(TRUE);
+	}
+#endif // _DEBUG
 
 	//標準のメッセージ処理を行う
 	return DefWindowProc(hwnd, msg, wparam, lparam);
