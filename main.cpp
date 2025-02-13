@@ -136,7 +136,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	
 
 	D3DResourceLeakChecker checker;
-	CoInitializeEx(0, COINIT_MULTITHREADED);
+	
 
 	WinApp* winapp = new WinApp;
 	winapp->Initialize();

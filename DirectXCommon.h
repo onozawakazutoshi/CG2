@@ -176,7 +176,7 @@ private:
 
 	Microsoft::WRL::ComPtr <ID3D12Resource> textureResource;
 
-	
+	IDxcBlobUtf8* shaderError = nullptr;
 
 	Microsoft::WRL::ComPtr < ID3D12Fence> fence = nullptr;
 	uint64_t fenceValue = 0;

@@ -17,10 +17,7 @@ DirectXCommon::DirectXCommon()
 }
 DirectXCommon::~DirectXCommon()
 {
-	if (Getfence()->GetCompletedValue() < fenceValue) {
-		Getfence()->SetEventOnCompletion(fenceValue, GetfenceEvent());
-		WaitForSingleObject(GetfenceEvent(), INFINITE);
-	}
+	CloseHandle(fenceEvent);
 
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -347,7 +344,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(const std::wstring
 	);
 	assert(SUCCEEDED(hr));
 
-	IDxcBlobUtf8* shaderError = nullptr;
+	
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
 		Logger::Log(shaderError->GetStringPointer());
@@ -509,15 +506,18 @@ void DirectXCommon::PostDraw()
 
 	fenceValue++;
 	GetcommandQueue()->Signal(Getfence().Get(), fenceValue);
-	
+	if (Getfence()->GetCompletedValue() < fenceValue) {
+		Getfence()->SetEventOnCompletion(fenceValue, GetfenceEvent());
+		WaitForSingleObject(GetfenceEvent(), INFINITE);
+	}
 	
 	
 
 	UpdateFixFPS();
 
-	hr = GetcommandAllocator()->Reset();
+	hr = commandAllocator->Reset();
 	assert(SUCCEEDED(hr));
-	hr = GetcommandList()->Reset(GetcommandAllocator().Get(), nullptr);
+	hr = commandList->Reset(GetcommandAllocator().Get(), nullptr);
 	assert(SUCCEEDED(hr));
 }
 
