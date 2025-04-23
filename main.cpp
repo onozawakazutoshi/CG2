@@ -221,13 +221,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	VertexData* vertexDataSprite = nullptr;
 	VertexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
 
-	vertexDataSprite[0].position = { 0.0f,360.0f,0.0f,1.0f };
+	vertexDataSprite[0].position = { 640.0f,300.0f,0.0f,1.0f };
 	vertexDataSprite[0].texcoord = { 0.0f,1.0f };
 	vertexDataSprite[0].normal = { 0.0f,0.0f,-1.0f };
-	vertexDataSprite[1].position = { 0.0f,0.0f,0.0f,1.0f };
+	vertexDataSprite[1].position = { 700.0f,400.0f,0.0f,1.0f };
 	vertexDataSprite[1].texcoord = { 0.0f,0.0f };
 	vertexDataSprite[1].normal = { 0.0f,0.0f,-1.0f };
-	vertexDataSprite[2].position = { 640.0f,360.0f,0.0f,1.0f };
+	vertexDataSprite[2].position = { 580.0f,400.0f,0.0f,1.0f };
 	vertexDataSprite[2].texcoord = { 1.0f,1.0f };
 	vertexDataSprite[2].normal = { 0.0f,0.0f,-1.0f };
 
@@ -691,7 +691,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			dxCommon->GetcommandList()->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
 			dxCommon->GetcommandList()->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 			//commandList->DrawInstanced(latIndex * lonIndex * 6, 1, 0, 0);
-			dxCommon->GetcommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
+			//dxCommon->GetcommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 
 			dxCommon->GetcommandList()->IASetIndexBuffer(&indexBufferViewSprite);
 			dxCommon->GetcommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
@@ -699,8 +699,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			dxCommon->GetcommandList()->SetGraphicsRootConstantBufferView(0, materialSpriteResourceSprite->GetGPUVirtualAddress());
 			dxCommon->GetcommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			dxCommon->GetcommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
-			//commandList->DrawInstanced(6, 1, 0, 0);
-			dxCommon->GetcommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+			dxCommon->GetcommandList()->DrawInstanced(3, 1, 0, 0);
+			//dxCommon->GetcommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetcommandList().Get());
 
